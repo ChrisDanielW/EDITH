@@ -1,0 +1,34 @@
+# Core LLM and LangChain
+langchain
+langchain-community
+torch
+transformers
+sentence-transformers
+
+# Vector Database
+pinecone
+
+# Document Processing
+pypdf
+python-docx
+pillow
+pytesseract
+pdfplumber
+unstructured
+
+# Data Processing
+numpy
+pandas
+
+# Utilities
+python-dotenv
+tqdm
+requests
+
+# Optional: Local vector store alternative
+faiss-cpu
+chromadb
+
+# Optional: LLM backends
+# llama-cpp-python  # For GGUF models (uncomment and install separately for GPU support)
+# ollama-python     # Alternative Ollama client
