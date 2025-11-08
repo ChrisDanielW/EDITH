@@ -88,13 +88,17 @@ class RAGService:
             context = self._prepare_context(relevant_results, max_context_length)
             logger.debug(f"Context preview (first 500 chars): {context[:500]}...")
             
-            # 5. Generate answer using LLaMA with context
+            # 5. Generate answer using LLaMA with context (succinct mode)
             answer = self.llama_client.chat(
                 message=question,
                 context=context,
-                system_prompt="""You are EDITH (Even Disconnected, I'm The Helper), an AI assistant that helps users understand their notes. 
-                Use the provided context from the user's notes to answer their question accurately and comprehensively. 
-                If the context doesn't contain enough information, say so clearly."""
+                system_prompt="""You are EDITH, a precise and helpful AI assistant.
+When answering from provided context:
+- Be direct and concise (2-3 sentences max unless asked for details)
+- Use bullet points for lists
+- If the answer is in the context, state it clearly
+- If uncertain or info missing, say so briefly
+- Don't add information not in the context"""
             )
             
             # 6. Prepare sources information

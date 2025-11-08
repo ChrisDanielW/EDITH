@@ -19,6 +19,7 @@ from services.rag_service import RAGService
 from utils.embeddings import EmbeddingGenerator
 from utils.document_loader import DocumentLoader
 from utils.text_chunker import SmartChunker
+from utils.query_classifier import QueryClassifier
 
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL),
@@ -46,6 +47,21 @@ class EDITH:
         self.rag_service = None
         self.document_loader = None
         self.text_chunker = None
+        self.query_classifier = None
+        
+        # System prompts
+        self.rag_system_prompt = """You are EDITH, a precise and helpful AI assistant.
+When answering from provided context:
+- Be direct and concise (2-3 sentences max unless asked for details)
+- Use bullet points for lists
+- If uncertain, say so briefly
+- Don't add information not in the context"""
+        
+        self.conversational_system_prompt = """You are EDITH (Even Disconnected, I'm The Helper), a friendly personal assistant.
+- Keep responses natural and brief (1-2 sentences)
+- Be helpful and personable
+- Don't be overly formal
+- You help users understand their personal notes"""
         
         self._initialize_components()
     
@@ -94,6 +110,10 @@ class EDITH:
                 chunk_size=settings.CHUNK_SIZE,
                 chunk_overlap=settings.CHUNK_OVERLAP
             )
+            
+            # 6. Initialize query classifier
+            logger.info("Setting up query classifier...")
+            self.query_classifier = QueryClassifier()
             
             logger.info("✓ All components initialized successfully!")
             
@@ -166,24 +186,115 @@ class EDITH:
             logger.error(f"Error during document ingestion: {str(e)}")
             raise
     
-    def query(self, question: str, filter_metadata: dict = None) -> dict:
+    def query(self, question: str, filter_metadata: dict = None, use_rag: bool = None) -> dict:
         """
-        Query the knowledge base
+        Query with intelligent routing between RAG and conversation
         
         Args:
             question: User's question
             filter_metadata: Optional metadata filters
+            use_rag: Force RAG usage (None = auto-detect)
             
         Returns:
             Dictionary with answer and sources
         """
         logger.info(f"Query: {question}")
+        
+        try:
+            # Classify query if not forced
+            if use_rag is None:
+                classification = self.query_classifier.classify(question)
+                use_rag = classification['type'] in ['knowledge', 'hybrid']
+                
+                logger.info(f"Query classified as: {classification['type']} "
+                          f"(confidence: {classification['confidence']:.2f})")
+            
+            if use_rag:
+                # Use RAG for knowledge queries
+                return self._query_with_rag(question, filter_metadata)
+            else:
+                # Use direct conversation for casual queries
+                return self._query_conversational(question)
+                
+        except Exception as e:
+            logger.error(f"Error processing query: {str(e)}")
+            return {
+                'answer': "I encountered an error processing your query.",
+                'error': str(e),
+                'confidence': 0.0,
+                'sources': [],
+                'num_sources': 0,
+                'mode': 'error'
+            }
+    
+    def _query_with_rag(self, question: str, filter_metadata: dict = None) -> dict:
+        """Query using RAG (knowledge from notes)"""
         result = self.rag_service.query(question, filter_metadata)
         
         logger.info(f"Answer confidence: {result['confidence']:.2f}")
         logger.info(f"Used {result['num_sources']} sources")
         
+        result['mode'] = 'rag'
         return result
+    
+    def _query_conversational(self, question: str) -> dict:
+        """Handle conversational queries without RAG"""
+        try:
+            # Fallback responses for common phrases
+            fallback_responses = {
+                'hi': "Hello! I'm EDITH, your personal notes assistant. How can I help you today?",
+                'hello': "Hi there! What would you like to know from your notes?",
+                'hey': "Hey! Ready to help you with your notes.",
+                'thanks': "You're welcome! Let me know if you need anything else.",
+                'thank you': "Happy to help! Feel free to ask about your notes anytime.",
+                'bye': "Goodbye! Come back anytime you need help with your notes.",
+                'goodbye': "See you later! Your notes will be here when you need them.",
+            }
+            
+            question_lower = question.lower().strip()
+            for key, response in fallback_responses.items():
+                if key in question_lower:
+                    logger.info("Generated conversational response (fallback)")
+                    return {
+                        'answer': response,
+                        'confidence': 1.0,
+                        'sources': [],
+                        'num_sources': 0,
+                        'mode': 'conversational'
+                    }
+            
+            # Use LLM for other conversational queries
+            prompt = f"""{self.conversational_system_prompt}
+
+User: {question}
+
+EDITH:"""
+            
+            answer = self.llama_client.chat(
+                message=question,
+                context="",
+                system_prompt=self.conversational_system_prompt
+            )
+            
+            logger.info("Generated conversational response (LLM)")
+            
+            return {
+                'answer': answer.strip(),
+                'confidence': 0.9,
+                'sources': [],
+                'num_sources': 0,
+                'mode': 'conversational'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in conversational query: {str(e)}")
+            return {
+                'answer': "I'm here to help! Ask me about your notes or just chat.",
+                'confidence': 0.5,
+                'sources': [],
+                'num_sources': 0,
+                'mode': 'conversational'
+            }
     
     def summarize(self, filter_metadata: dict = None, style: str = "comprehensive") -> str:
         """
@@ -201,45 +312,62 @@ class EDITH:
         return summary
     
     def interactive_mode(self):
-        """Run EDITH in interactive chat mode"""
-        logger.info("\n" + "=" * 60)
-        logger.info("EDITH Interactive Mode")
-        logger.info("Commands: 'quit' to exit, 'summary' for note summary")
-        logger.info("=" * 60 + "\n")
+        """Enhanced interactive mode with smart routing"""
+        print("\n" + "=" * 60)
+        print("EDITH Interactive Mode")
+        print("=" * 60)
+        print("Ask questions about your notes or just chat!")
+        print("Commands: 'quit', 'summary', 'help'")
+        print("=" * 60 + "\n")
         
         while True:
             try:
-                user_input = input("\nYou: ").strip()
+                user_input = input("\n💭 You: ").strip()
                 
                 if not user_input:
                     continue
                 
-                if user_input.lower() in ['quit', 'exit', 'q']:
-                    logger.info("Goodbye!")
+                # Handle commands
+                if user_input.lower() in ['quit', 'exit', 'q', 'bye']:
+                    print("\n👋 EDITH: Goodbye! Your notes are always here when you need them.")
                     break
                 
-                if user_input.lower() == 'summary':
-                    print("\nEDITH: Generating summary...")
-                    summary = self.summarize(style="comprehensive")
-                    print(f"\nEDITH: {summary}\n")
+                elif user_input.lower() == 'summary':
+                    print("\n📊 Generating summary...")
+                    summary = self.summarize()
+                    print(f"\n{summary}")
                     continue
                 
-                # Regular query
+                elif user_input.lower() == 'help':
+                    print("""
+📚 EDITH Help:
+- Ask questions about your notes (e.g., "What is polymorphism?")
+- Have a conversation (e.g., "Hi EDITH", "Thanks!")
+- Type 'summary' for a notes overview
+- Type 'quit' to exit
+                    """)
+                    continue
+                
+                # Process query
                 result = self.query(user_input)
                 
-                print(f"\nEDITH: {result['answer']}")
+                # Display answer with mode indicator
+                mode_emoji = "🔍" if result.get('mode') == 'rag' else "💬"
+                print(f"\n{mode_emoji} EDITH: {result['answer']}")
                 
-                if result['sources']:
-                    print(f"\nSources ({len(result['sources'])}):")
-                    for source in result['sources']:
-                        print(f"  - {source['filename']} (relevance: {source['relevance_score']:.2f})")
+                # Show sources for RAG queries
+                if result.get('mode') == 'rag' and result.get('num_sources', 0) > 0:
+                    print(f"\n📎 Sources: {result['num_sources']} chunks (confidence: {result['confidence']:.2f})")
+                    if result.get('sources'):
+                        for source in result['sources'][:3]:  # Show top 3
+                            print(f"   • {source.get('filename', 'Unknown')}")
                 
             except KeyboardInterrupt:
-                print("\n\nGoodbye!")
+                print("\n\n👋 EDITH: Interrupted. Goodbye!")
                 break
             except Exception as e:
-                logger.error(f"Error: {str(e)}")
-                print(f"\nEDITH: Sorry, I encountered an error: {str(e)}")
+                logger.error(f"Error in interactive mode: {str(e)}")
+                print(f"\n⚠️  EDITH: Sorry, I encountered an error: {str(e)}")
 
 
 def main():
@@ -265,12 +393,16 @@ def main():
         
         elif args.query:
             result = edith.query(args.query)
-            print(f"\n{result['answer']}\n")
             
-            if result['sources']:
-                print(f"Sources:")
+            # Show mode indicator
+            mode_emoji = "🔍" if result.get('mode') == 'rag' else "💬"
+            print(f"\n{mode_emoji} {result['answer']}\n")
+            
+            # Show sources for RAG queries
+            if result.get('mode') == 'rag' and result.get('sources'):
+                print(f"📎 Sources ({len(result['sources'])}):")
                 for source in result['sources']:
-                    print(f"  - {source['filename']}")
+                    print(f"  • {source['filename']}")
         
         elif args.summary:
             summary = edith.summarize()
