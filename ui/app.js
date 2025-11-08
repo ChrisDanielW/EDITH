@@ -11,9 +11,17 @@ const sendBtn = document.getElementById('sendBtn');
 const clearBtn = document.getElementById('clearBtn');
 const summaryBtn = document.getElementById('summaryBtn');
 const statsBtn = document.getElementById('statsBtn');
+const uploadBtn = document.getElementById('uploadBtn');
 const statsPanel = document.getElementById('statsPanel');
 const typingIndicator = document.getElementById('typingIndicator');
 const toastContainer = document.getElementById('toastContainer');
+const uploadModal = document.getElementById('uploadModal');
+const closeUploadModal = document.getElementById('closeUploadModal');
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const uploadProgress = document.getElementById('uploadProgress');
+const progressFill = document.getElementById('progressFill');
+const uploadStatus = document.getElementById('uploadStatus');
 
 // State
 let isProcessing = false;
@@ -49,6 +57,36 @@ function setupEventListeners() {
     
     // Stats toggle
     statsBtn.addEventListener('click', toggleStats);
+    
+    // Upload modal
+    uploadBtn.addEventListener('click', () => uploadModal.style.display = 'flex');
+    closeUploadModal.addEventListener('click', () => uploadModal.style.display = 'none');
+    uploadModal.addEventListener('click', (e) => {
+        if (e.target === uploadModal) uploadModal.style.display = 'none';
+    });
+    
+    // Upload area interactions
+    uploadArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragging');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragging');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragging');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileUpload(files[0]);
+        }
+    });
 }
 
 // ==========================================
@@ -371,3 +409,86 @@ document.addEventListener('keydown', (e) => {
         clearChat();
     }
 });
+
+// ==========================================
+// FILE UPLOAD HANDLING
+// ==========================================
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        handleFileUpload(file);
+    }
+}
+
+async function handleFileUpload(file) {
+    // Validate file type
+    const allowedExtensions = ['.pdf', '.docx', '.pptx', '.txt', '.md', '.png', '.jpg', '.jpeg'];
+    const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+    
+    if (!allowedExtensions.includes(fileExt)) {
+        showToast(`File type ${fileExt} not supported`, 'error');
+        return;
+    }
+    
+    // Show progress
+    uploadProgress.style.display = 'block';
+    progressFill.style.width = '0%';
+    uploadStatus.textContent = 'Uploading...';
+    uploadBtn.disabled = true;
+    
+    try {
+        // Create form data
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Simulate progress
+        progressFill.style.width = '30%';
+        
+        // Upload file
+        const response = await fetch(`${API_BASE_URL}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        progressFill.style.width = '70%';
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Upload failed');
+        }
+        
+        const data = await response.json();
+        
+        // Complete progress
+        progressFill.style.width = '100%';
+        uploadStatus.textContent = 'Processing complete!';
+        
+        // Show success message in chat
+        addMessage(
+            `✅ **Document Uploaded Successfully**\n\n` +
+            `📄 **File:** ${data.filename}\n` +
+            `📊 **Chunks Created:** ${data.chunks}\n\n` +
+            `Your document has been processed and added to the knowledge base. You can now ask questions about it!`,
+            'assistant',
+            { mode: 'system' }
+        );
+        
+        showToast(`Successfully uploaded ${data.filename}`, 'success');
+        
+        // Close modal after a delay
+        setTimeout(() => {
+            uploadModal.style.display = 'none';
+            uploadProgress.style.display = 'none';
+            fileInput.value = ''; // Reset file input
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        uploadStatus.textContent = 'Upload failed';
+        progressFill.style.width = '0%';
+        showToast(`Upload failed: ${error.message}`, 'error');
+    } finally {
+        uploadBtn.disabled = false;
+    }
+}

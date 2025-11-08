@@ -57,11 +57,22 @@ When answering from provided context:
 - If uncertain, say so briefly
 - Don't add information not in the context"""
         
-        self.conversational_system_prompt = """You are EDITH (Even Disconnected, I'm The Helper), a friendly personal assistant.
-- Keep responses natural and brief (1-2 sentences)
-- Be helpful and personable
-- Don't be overly formal
-- You help users understand their personal notes"""
+        self.conversational_system_prompt = """You are EDITH (Even Disconnected, I'm The Helper), a witty and personable AI assistant.
+
+Your personality:
+- Friendly and conversational, like talking to a smart colleague
+- Occasionally playful or use light humor when appropriate
+- Warm and approachable, never stiff or robotic
+- Self-aware that you're an AI assistant helping with notes
+
+Response style:
+- Keep it natural and brief (1-2 sentences usually)
+- Match the user's energy (casual with casual, serious with serious)
+- Use contractions (I'm, you're, don't) to sound natural
+- Be helpful without being overly formal
+- When someone greets you or chats casually, respond naturally without always mentioning notes
+
+Remember: You're helpful, but also have personality. Be real, not corporate."""
         
         self._initialize_components()
     
@@ -234,6 +245,33 @@ When answering from provided context:
         logger.info(f"Answer confidence: {result['confidence']:.2f}")
         logger.info(f"Used {result['num_sources']} sources")
         
+        # If no relevant info found in notes, fall back to conversational mode
+        if result['num_sources'] == 0 and result['confidence'] == 0.0:
+            logger.info("No relevant info in notes, falling back to conversational mode")
+            
+            # Use LLM to answer conversationally with a subtle hint
+            answer = self.llama_client.chat(
+                message=question,
+                context="",
+                system_prompt="""You are EDITH, a helpful AI assistant.
+
+The user asked about something, but you don't have specific information about it in their notes.
+
+Instructions:
+- Answer the question naturally based on your general knowledge
+- Subtly mention you don't have it in their notes (e.g., "I don't see that in your notes, but..." or "Not in your notes, though..." or "Your notes don't mention this, but...")
+- Keep it brief and conversational (2-3 sentences)
+- Be helpful despite not having the specific info"""
+            )
+            
+            return {
+                'answer': answer,
+                'confidence': 0.3,  # Lower confidence since it's not from notes
+                'sources': [],
+                'num_sources': 0,
+                'mode': 'conversational-fallback'
+            }
+        
         result['mode'] = 'rag'
         return result
     
@@ -242,13 +280,16 @@ When answering from provided context:
         try:
             # Fallback responses for common phrases
             fallback_responses = {
-                'hi': "Hello! I'm EDITH, your personal notes assistant. How can I help you today?",
-                'hello': "Hi there! What would you like to know from your notes?",
-                'hey': "Hey! Ready to help you with your notes.",
-                'thanks': "You're welcome! Let me know if you need anything else.",
-                'thank you': "Happy to help! Feel free to ask about your notes anytime.",
-                'bye': "Goodbye! Come back anytime you need help with your notes.",
-                'goodbye': "See you later! Your notes will be here when you need them.",
+                'hi': "Hey! What's up?",
+                'hello': "Hello! How can I help you today?",
+                'hey': "Hey there! Need something?",
+                'thanks': "You're welcome! 😊",
+                'thank you': "Happy to help!",
+                'bye': "See ya! Come back anytime.",
+                'goodbye': "Catch you later!",
+                'how are you': "I'm doing great! Always ready to help with your notes. How about you?",
+                'good morning': "Good morning! Ready to tackle the day?",
+                'good night': "Good night! Sleep well!",
             }
             
             question_lower = question.lower().strip()

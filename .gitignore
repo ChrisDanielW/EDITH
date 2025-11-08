@@ -1,2 +1,5 @@
 .env
 .env.*
+
+src/data/notes/*
+!src/data/notes/.gitkeep

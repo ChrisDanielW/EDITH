@@ -204,6 +204,133 @@ def ingest():
         }), 500
 
 
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    """
+    Upload and ingest a single document
+    
+    Form data:
+    - file: The document file to upload
+    
+    Response:
+    {
+        "status": "success",
+        "message": "File uploaded and processed",
+        "filename": "document.pdf",
+        "chunks": 25
+    }
+    """
+    try:
+        # Check if file was uploaded
+        if 'file' not in request.files:
+            return jsonify({
+                'error': 'No file provided',
+                'status': 'error'
+            }), 400
+        
+        file = request.files['file']
+        
+        # Check if filename is empty
+        if file.filename == '':
+            return jsonify({
+                'error': 'No file selected',
+                'status': 'error'
+            }), 400
+        
+        # Check file extension
+        allowed_extensions = {'.pdf', '.docx', '.pptx', '.txt', '.md', '.png', '.jpg', '.jpeg'}
+        file_ext = Path(file.filename).suffix.lower()
+        
+        if file_ext not in allowed_extensions:
+            return jsonify({
+                'error': f'File type {file_ext} not supported. Allowed: {", ".join(allowed_extensions)}',
+                'status': 'error'
+            }), 400
+        
+        # Save file to notes directory
+        notes_dir = Path(__file__).parent.parent / 'data' / 'notes'
+        notes_dir.mkdir(parents=True, exist_ok=True)
+        
+        file_path = notes_dir / file.filename
+        file.save(str(file_path))
+        
+        logger.info(f"File uploaded: {file.filename}")
+        
+        # Get EDITH instance and ingest the file
+        edith_instance = get_edith()
+        
+        # Ingest just this file
+        from utils.document_loader import DocumentLoader
+        from utils.text_chunker import TextChunker
+        
+        doc_loader = DocumentLoader()
+        chunker = TextChunker()
+        
+        # Load document (returns a dict with 'text' and 'metadata')
+        doc_result = doc_loader.load_document(str(file_path))
+        
+        if not doc_result.get('success', True):
+            return jsonify({
+                'error': 'Failed to process document',
+                'status': 'error',
+                'message': doc_result.get('metadata', {}).get('error', 'Unknown error')
+            }), 400
+        
+        # Chunk the document text
+        chunks = chunker.chunk_text(
+            doc_result['text'],
+            metadata={
+                'filename': doc_result['metadata']['filename'],
+                'type': doc_result['metadata']['type']
+            }
+        )
+        
+        # Generate embeddings and store in vector database
+        if chunks:
+            # Extract texts and prepare metadata
+            texts = [chunk['text'] for chunk in chunks]
+            metadatas = []
+            for chunk in chunks:
+                metadata = chunk.get('metadata', {}).copy()
+                metadata['chunk_id'] = chunk.get('chunk_id', 0)
+                metadata['char_count'] = chunk.get('char_count', 0)
+                metadatas.append(metadata)
+            
+            # Generate embeddings
+            embeddings = edith_instance.embedding_generator.batch_generate_embeddings(
+                texts,
+                batch_size=32,
+                show_progress=False
+            )
+            
+            # Upsert to vector store
+            result = edith_instance.vector_store.upsert_vectors(
+                vectors=embeddings,
+                texts=texts,
+                metadatas=metadatas
+            )
+            
+            if result['success']:
+                logger.info(f"Stored {len(chunks)} chunks from {file.filename}")
+            else:
+                raise Exception(f"Failed to store vectors: {result.get('error', 'Unknown error')}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'File uploaded and processed successfully',
+            'filename': file.filename,
+            'chunks': len(chunks)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error uploading file: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'status': 'error',
+            'message': 'Failed to upload and process file'
+        }), 500
+
+
 @app.route('/api/stats', methods=['GET'])
 def stats():
     """

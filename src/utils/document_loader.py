@@ -3,6 +3,7 @@ Document Loader for EDITH
 Handles loading and extracting text from various document formats:
 - PDF files
 - Word documents (.docx, .doc)
+- PowerPoint presentations (.pptx)
 - Images (with OCR)
 - Text files
 """
@@ -23,6 +24,11 @@ try:
     from docx import Document
 except ImportError:
     Document = None
+
+try:
+    from pptx import Presentation
+except ImportError:
+    Presentation = None
 
 try:
     from PIL import Image
@@ -46,6 +52,7 @@ class DocumentLoader:
     SUPPORTED_FORMATS = {
         'pdf': ['.pdf'],
         'word': ['.docx', '.doc'],
+        'powerpoint': ['.pptx'],
         'image': ['.png', '.jpg', '.jpeg', '.tiff', '.bmp'],
         'text': ['.txt', '.md', '.markdown']
     }
@@ -66,6 +73,8 @@ class DocumentLoader:
             logger.warning("pypdf not installed. PDF support limited.")
         if Document is None:
             logger.warning("python-docx not installed. Word document support disabled.")
+        if Presentation is None:
+            logger.warning("python-pptx not installed. PowerPoint support disabled.")
         if Image is None or pytesseract is None:
             logger.warning("PIL or pytesseract not installed. OCR support disabled.")
             self.use_ocr = False
@@ -100,6 +109,8 @@ class DocumentLoader:
             return self._load_pdf(file_path)
         elif file_extension in self.SUPPORTED_FORMATS['word']:
             return self._load_word(file_path)
+        elif file_extension in self.SUPPORTED_FORMATS['powerpoint']:
+            return self._load_powerpoint(file_path)
         elif file_extension in self.SUPPORTED_FORMATS['image']:
             return self._load_image(file_path)
         elif file_extension in self.SUPPORTED_FORMATS['text']:
@@ -197,6 +208,64 @@ class DocumentLoader:
         
         except Exception as e:
             logger.error(f"Error loading Word document {file_path.name}: {str(e)}")
+            return {
+                'text': '',
+                'metadata': {'filename': file_path.name, 'error': str(e)},
+                'success': False
+            }
+    
+    def _load_powerpoint(self, file_path: Path) -> Dict[str, any]:
+        """Extract text from PowerPoint presentations"""
+        try:
+            if Presentation is None:
+                raise ImportError("python-pptx not installed")
+            
+            prs = Presentation(file_path)
+            text_content = []
+            
+            # Extract text from each slide
+            for slide_num, slide in enumerate(prs.slides, 1):
+                slide_text = []
+                
+                # Extract text from shapes
+                for shape in slide.shapes:
+                    if hasattr(shape, "text") and shape.text.strip():
+                        slide_text.append(shape.text)
+                    
+                    # Extract text from tables
+                    if shape.shape_type == 19:  # Table
+                        try:
+                            for row in shape.table.rows:
+                                row_text = ' | '.join(cell.text for cell in row.cells)
+                                if row_text.strip():
+                                    slide_text.append(row_text)
+                        except:
+                            pass
+                
+                if slide_text:
+                    text_content.append(f"[Slide {slide_num}]\n" + '\n'.join(slide_text))
+            
+            full_text = '\n\n'.join(text_content)
+            
+            metadata = {
+                'filename': file_path.name,
+                'type': 'powerpoint',
+                'slide_count': len(prs.slides)
+            }
+            
+            return {
+                'text': full_text,
+                'metadata': metadata,
+                'success': True
+            }
+        
+        except Exception as e:
+            logger.error(f"Error loading PowerPoint file {file_path.name}: {str(e)}")
+            return {
+                'text': '',
+                'metadata': {'filename': file_path.name, 'error': str(e)},
+                'success': False
+            }
             return {
                 'text': '',
                 'metadata': {'filename': file_path.name, 'error': str(e)},

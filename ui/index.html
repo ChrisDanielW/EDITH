@@ -22,6 +22,9 @@
                     </div>
                 </div>
                 <div class="header-actions">
+                    <button id="uploadBtn" class="btn btn-primary" title="Upload Document">
+                        📤 Upload
+                    </button>
                     <button id="summaryBtn" class="btn btn-secondary" title="Generate Summary">
                         📊 Summary
                     </button>
@@ -34,6 +37,30 @@
                 </div>
             </div>
         </header>
+
+        <!-- Upload Modal (hidden by default) -->
+        <div id="uploadModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📤 Upload Document</h2>
+                    <button id="closeUploadModal" class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept=".pdf,.docx,.pptx,.txt,.md,.png,.jpg,.jpeg" style="display: none;">
+                        <div class="upload-icon">📄</div>
+                        <p class="upload-text">Click to select a file or drag and drop</p>
+                        <p class="upload-hint">Supported: PDF, DOCX, PPTX, TXT, MD, Images (PNG, JPG)</p>
+                    </div>
+                    <div id="uploadProgress" class="upload-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                        <p id="uploadStatus" class="upload-status">Uploading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Stats Panel (hidden by default) -->
         <div id="statsPanel" class="stats-panel" style="display: none;">
