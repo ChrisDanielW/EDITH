@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDITH - Even Disconnected, I'm The Helper</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">👓</div>
+                    <div class="logo-text">
+                        <h1>EDITH</h1>
+                        <p class="subtitle">Even Disconnected, I'm The Helper</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="summaryBtn" class="btn btn-secondary" title="Generate Summary">
+                        📊 Summary
+                    </button>
+                    <button id="statsBtn" class="btn btn-secondary" title="View Stats">
+                        📈 Stats
+                    </button>
+                    <button id="clearBtn" class="btn btn-secondary" title="Clear Chat">
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Panel (hidden by default) -->
+        <div id="statsPanel" class="stats-panel" style="display: none;">
+            <div class="stats-content">
+                <h3>📊 Vector Database Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Vectors:</span>
+                        <span id="statVectors" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Dimension:</span>
+                        <span id="statDimension" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Index Fullness:</span>
+                        <span id="statFullness" class="stat-value">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Container -->
+        <main class="chat-container">
+            <div id="chatMessages" class="chat-messages">
+                <!-- Welcome Message -->
+                <div class="message assistant-message welcome-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            <p><strong>Hello! I'm EDITH</strong> 👋</p>
+                            <p>I'm your personal AI assistant for notes. I can:</p>
+                            <ul>
+                                <li>💬 Chat with you naturally</li>
+                                <li>🔍 Answer questions from your notes</li>
+                                <li>📊 Generate summaries</li>
+                                <li>📚 Help you understand complex topics</li>
+                            </ul>
+                            <p>Try asking me something like "What is polymorphism?" or just say hi!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="userInput" 
+                        class="user-input" 
+                        placeholder="Ask me anything about your notes..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendBtn" class="send-btn" title="Send message">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="input-hints">
+                    <span class="hint">💡 Tip: I can tell the difference between casual chat and knowledge questions!</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Typing Indicator -->
+        <div id="typingIndicator" class="typing-indicator" style="display: none;">
+            <div class="message-avatar">🤖</div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

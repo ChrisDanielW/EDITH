@@ -85,7 +85,7 @@ class RAGService:
                 }
             
             # 4. Prepare context from retrieved documents
-            context = self._prepare_context(relevant_results, max_context_length)
+            context = self._prepare_context(relevant_results, max_length=max_context_length)
             logger.debug(f"Context preview (first 500 chars): {context[:500]}...")
             
             # 5. Generate answer using LLaMA with context (succinct mode)
@@ -153,7 +153,7 @@ When answering from provided context:
                 return "No notes found to summarize."
             
             # Prepare context
-            context = self._prepare_context(results, max_context_length=3000)
+            context = self._prepare_context(results, max_length=3000)
             
             # Create summary prompt based on style
             style_prompts = {

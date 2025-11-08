@@ -25,6 +25,10 @@ python-dotenv
 tqdm
 requests
 
+# Web UI
+flask
+flask-cors
+
 # Optional: Local vector store alternative
 faiss-cpu
 chromadb
