@@ -1,171 +1,276 @@
-# EDITH - Even Disconnected, I'm The Helper
+# EDITH - Even Disconnected, I'm The Helper 👓
 
-## Overview
-EDITH is a personal AI assistant that analyzes your notes and generates comprehensive summaries for quick reference. The application runs completely locally using LLaMA 3.1, ensuring privacy and functionality even without an internet connection. It uses Retrieval-Augmented Generation (RAG) with Pinecone vector databases to efficiently process and retrieve information from various types of unstructured data.
+<div align="center">
 
-## ✨ New: Ollama Support!
-EDITH now supports **Ollama** for easy LLaMA 3.1 model management! See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for details.
+**A modern, ChatGPT-style AI study assistant that runs completely offline**
 
-## Features
-- **Multi-Format Support**: Processes PDFs, Word documents, images (OCR), text files, and more
-- **Local LLM**: Uses LLaMA 3.1 (8B/70B) running locally via Ollama or direct GGUF
-- **RAG Architecture**: Leverages vector databases for intelligent information retrieval
-- **Note Analysis**: Extracts key information from notes using advanced NLP
-- **Smart Summarization**: Generates concise, context-aware summaries
-- **Vector Storage**: Utilizes Pinecone for efficient storage and retrieval of note embeddings
-- **OCR Support**: Extracts text from images and scanned documents
-- **Multiple Backends**: Supports Ollama, llama-cpp-python, and HuggingFace transformers
+*Smart conversation management • Context-aware responses • Beautiful web UI*
 
-## Project Structure
-```
-notes-assistant
-├── src
-│   ├── main.py               # Entry point of the application
-│   ├── config
-│   │   └── settings.py       # Configuration settings
-│   ├── models
-│   │   └── llama_client.py    # LLaMA model interactions
-│   ├── services
-│   │   ├── note_analyzer.py   # Note analysis functionality
-│   │   ├── summarizer.py       # Summarization functionality
-│   │   └── vector_store.py     # Vector database interactions
-│   ├── utils
-│   │   ├── text_processor.py    # Text processing utilities
-│   │   └── embeddings.py        # Embedding generation functions
-│   └── data
-│       └── notes              # Directory for notes data files
-├── tests
-│   ├── test_analyzer.py       # Unit tests for NoteAnalyzer
-│   └── test_summarizer.py     # Unit tests for Summarizer
-├── requirements.txt           # Project dependencies
-├── .env.example               # Example environment variables
-└── README.md                  # Project documentation
-```
+</div>
 
-## Quick Start
+---
 
-### 1. Installation
+## 🌟 What is EDITH?
+
+EDITH is your personal AI study assistant that helps you make sense of your notes using local LLMs. She features a modern ChatGPT-style interface with conversation management, intelligent query classification, and context-aware responses. Best of all? She runs **completely offline** using LLaMA 3.1.
+
+### Key Features
+
+✨ **Modern Web Interface**
+- ChatGPT-style landing page with welcoming design
+- Conversation management (create, save, switch, delete)
+- Clean, animated UI with expandable sidebar
+- Real-time typing indicators and status updates
+
+🧠 **Intelligent AI Assistant**
+- Context-aware responses that reference previous messages
+- Automatic classification between knowledge queries and casual chat
+- RAG (Retrieval-Augmented Generation) for note-based answers
+- Conversational mode for general questions
+
+📚 **Powerful Note Processing**
+- Multi-format support (PDF, DOCX, images with OCR, text files)
+- Drag-and-drop or multi-file upload
+- Automatic text chunking and embedding generation
+- Vector database storage with Pinecone for fast retrieval
+
+🔒 **Privacy First**
+- 100% local LLM execution via Ollama
+- No data sent to external servers
+- Your notes stay on your machine
+
+---
+
+## 🚀 Quick Start
+
+### 1. Install Ollama & Pull Model
 
 ```powershell
-# Install dependencies
-pip install -r requirements.txt
-
-# Option 1: Use Ollama (Recommended - Easiest!)
-# Install Ollama from: https://ollama.ai/download
+# Download Ollama from: https://ollama.ai/download
+# Then pull LLaMA 3.1:
 ollama pull llama3.1:8b-instruct-q4_K_M
-
-# Option 2: Use GGUF files directly
-pip install llama-cpp-python  # For GGUF models
-
-# Option 3: Use HuggingFace transformers
-pip install transformers accelerate
 ```
 
-### 2. Configuration
+### 2. Install Dependencies
 
 ```powershell
-# Copy and edit environment file
+# Clone the repository
+git clone https://github.com/ChrisDanielW/EDITH.git
+cd EDITH
+
+# Install Python dependencies
+pip install -r requirements.txt
+```
+
+### 3. Configure Pinecone
+
+```powershell
+# Copy environment file
 cp .env.example .env
+
+# Edit .env and add your Pinecone API key
 notepad .env
 ```
 
-Set your Pinecone API key in `.env`. The model path is pre-configured for Ollama!
+Get a free Pinecone API key at [pinecone.io](https://www.pinecone.io/)
 
-### 3. Get LLaMA 3.1 Model
-
-**Using Ollama (Recommended):**
-```powershell
-ollama pull llama3.1:8b-instruct-q4_K_M
-```
-
-**Or download GGUF:** Get from [HuggingFace](https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF)
-
-See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for detailed instructions.
-
-### 4. Ingest Your Notes
+### 4. Start EDITH
 
 ```powershell
-# Place your documents in src/data/notes/
-# Then run:
-python src/main.py --ingest
+# Start the web UI and API server
+python start_ui.py
 ```
 
-### 5. Start Using EDITH
+Open your browser to **http://localhost:5000** and start chatting!
 
-```powershell
-# Interactive mode
-python src/main.py
+---
 
-# Query mode
-python src/main.py --query "What are my notes about machine learning?"
+## 📖 User Guide
 
-# Summary mode
-python src/main.py --summary
+### First Time Setup
+
+1. **Upload Your Notes**
+   - Click the 📎 Upload button in the sidebar
+   - Select or drag-and-drop your documents (PDF, DOCX, TXT, images)
+   - EDITH will process and index them automatically
+
+2. **Start a Conversation**
+   - Type your first message on the landing page
+   - A new numbered conversation will be created automatically
+   - Ask questions about your notes or just chat casually
+
+### Using EDITH
+
+**Asking About Notes:**
+```
+You: What is polymorphism in OOP?
+EDITH: [Searches your notes and provides detailed explanation]
 ```
 
-## Detailed Documentation
-
-See [SETUP.md](SETUP.md) for detailed installation and configuration instructions.
-
-## Architecture
-
-EDITH uses a RAG (Retrieval-Augmented Generation) architecture:
-
-1. **Document Ingestion**: Loads and processes documents (PDF, DOCX, images, etc.)
-2. **Text Chunking**: Splits documents into semantic chunks
-3. **Embedding Generation**: Creates vector embeddings using sentence-transformers
-4. **Vector Storage**: Stores embeddings in Pinecone for fast retrieval
-5. **Query Processing**: Converts questions to embeddings and retrieves relevant chunks
-6. **Answer Generation**: Uses LLaMA to generate answers based on retrieved context
-
-## Technology Stack
-
-- **LangChain**: Framework for LLM applications
-- **Pinecone**: Vector database for embeddings
-- **LLaMA**: Local language model (via llama-cpp-python or transformers)
-- **Sentence Transformers**: Embedding generation
-- **PyPDF/python-docx/Tesseract**: Document processing
-
-## Usage Examples
-
-### Interactive Chat
-
-```powershell
-python src/main.py --interactive
+**Casual Conversation:**
+```
+You: Hey, how's it going?
+EDITH: [Responds naturally without searching notes]
 ```
 
+**Follow-up Questions:**
 ```
-You: What are the main topics in my notes?
-EDITH: Based on your notes, the main topics are...
-
-You: Summarize my machine learning notes
-EDITH: Here's a summary of your machine learning notes...
-
-You: quit
+You: Can you explain that in more detail?
+EDITH: [References previous conversation context]
 ```
 
-### Command Line Queries
+### Managing Conversations
 
-```powershell
-# Ask a question
-python src/main.py --query "What is gradient descent?"
+- **New Conversation**: Click the ➕ button (appears when in a conversation)
+- **Switch Conversations**: Click any conversation in the left sidebar
+- **Delete Conversation**: Click the × button on any conversation
+- **Return to Landing**: Click the hamburger menu (☰) to collapse sidebar
 
-# Generate summary
-python src/main.py --summary
+---
 
-# Ingest new documents
-python src/main.py --ingest --notes-dir "path/to/new/notes"
+## 🏗️ Architecture
+
+### Tech Stack
+
+**Frontend:**
+- Vanilla HTML, CSS, JavaScript
+- LocalStorage for conversation persistence
+- Modern animated UI with responsive design
+
+**Backend:**
+- Flask REST API
+- Python 3.8+
+- Ollama for LLM execution
+
+**AI/ML:**
+- LLaMA 3.1 (8B Instruct, 4-bit quantized)
+- Sentence Transformers for embeddings
+- Pinecone vector database
+- RAG architecture for context retrieval
+
+### How It Works
+
+1. **Document Upload** → Text extraction & chunking → Embedding generation → Store in Pinecone
+2. **User Query** → Classify (knowledge vs. casual) → Retrieve relevant chunks (if knowledge) → Generate answer with conversation context
+3. **Conversation History** → Last 3 exchanges sent with each query → Context-aware responses
+
+---
+
+## 📁 Project Structure
+
+```
+EDITH/
+├── ui/                          # Web interface
+│   ├── index.html              # Main HTML
+│   ├── styles.css              # Styling
+│   └── app.js                  # Frontend logic
+├── src/
+│   ├── main.py                 # Core EDITH class
+│   ├── api/
+│   │   └── app.py              # Flask API server
+│   ├── models/
+│   │   └── llama_client.py     # LLM interface
+│   ├── services/
+│   │   ├── rag_service.py      # RAG pipeline
+│   │   ├── vector_store.py     # Pinecone integration
+│   │   ├── note_analyzer.py    # Document analysis
+│   │   └── summarizer.py       # Summarization
+│   ├── utils/
+│   │   ├── document_loader.py  # File loading
+│   │   ├── text_chunker.py     # Smart chunking
+│   │   ├── embeddings.py       # Embedding generation
+│   │   └── query_classifier.py # Query classification
+│   └── config/
+│       └── settings.py         # Configuration
+├── start_ui.py                 # Launch script
+├── requirements.txt            # Python dependencies
+└── README.md                   # This file
 ```
 
-## Supported Document Formats
+---
 
-- **Text**: `.txt`, `.md`, `.markdown`
-- **PDF**: `.pdf`
-- **Word**: `.docx`, `.doc`
-- **Images**: `.png`, `.jpg`, `.jpeg` (requires OCR)
+## ⚙️ Configuration
 
-## Contributing
-Contributions are welcome! Please submit a pull request or open an issue for any enhancements or bug fixes.
+### Token Limits (Adjustable in `src/main.py`)
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+- **RAG Mode**: 500 tokens (detailed educational responses)
+- **Conversational Mode**: 350 tokens (natural chat)
+- **Fallback Mode**: 400 tokens (general knowledge)
+
+### Model Selection
+
+Edit `src/config/settings.py` to change models:
+
+```python
+# Current default
+MODEL_NAME = "llama3.1:8b-instruct-q4_K_M"
+
+# For more powerful responses (slower, needs more RAM)
+MODEL_NAME = "llama3.1:70b-instruct-q4_K_M"
+```
+
+### Vector Database
+
+EDITH uses Pinecone with these settings:
+- **Top K**: 3 most relevant chunks
+- **Similarity Threshold**: 0.7
+- **Max Context**: 2000 characters
+
+---
+
+## 🎨 Features Deep Dive
+
+### Conversation Management
+- Persistent storage in browser localStorage
+- Numbered conversations (1, 2, 3...)
+- Auto-save after every message
+- Landing page shows on startup
+
+### Intelligent Query Routing
+- Automatic classification of user intent
+- Knowledge queries → RAG mode (searches notes)
+- Casual queries → Conversational mode (direct chat)
+- Hybrid queries → RAG with conversational tone
+
+### Context Awareness
+- Sends last 6 messages (3 exchanges) with each query
+- References previous conversation naturally
+- Maintains conversation flow across messages
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Areas for improvement:
+
+- [ ] Export conversations to PDF/text
+- [ ] Search within conversations
+- [ ] Custom system prompts per conversation
+- [ ] Markdown rendering in responses
+- [ ] Code syntax highlighting
+- [ ] Voice input/output
+
+---
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) for details
+
+---
+
+## 🙏 Acknowledgments
+
+- **LLaMA 3.1** by Meta AI
+- **Ollama** for easy local LLM deployment
+- **Pinecone** for vector database
+- **Sentence Transformers** for embeddings
+
+---
+
+<div align="center">
+
+Made with ❤️ for students who want to study smarter
+
+**[Report Bug](https://github.com/ChrisDanielW/EDITH/issues)** • **[Request Feature](https://github.com/ChrisDanielW/EDITH/issues)**
+
+</div>
