@@ -2,9 +2,11 @@
 
 <div align="center">
 
-**A modern, ChatGPT-style AI study assistant that runs completely offline**
+**A modern, AI study assistant that runs completely offline**
 
-*Smart conversation management • Context-aware responses • Beautiful web UI*
+*Smart conversation management • Context-aware responses • Minimalist web UI*
+
+![EDITH Landing Page](images/Screenshot%202025-11-09%20222627.png)
 
 </div>
 
@@ -12,12 +14,14 @@
 
 ## 🌟 What is EDITH?
 
-EDITH is your personal AI study assistant that helps you make sense of your notes using local LLMs. She features a modern ChatGPT-style interface with conversation management, intelligent query classification, and context-aware responses. Best of all? She runs **completely offline** using LLaMA 3.1.
+EDITH is your personal AI study assistant that helps you make sense of your notes using local LLMs. She features a modern interface with conversation management, intelligent query classification, and context-aware responses. Best of all? She runs **completely offline** using LLaMA 3.1.
+
+![EDITH Chat Interface](images/Screenshot%202025-11-09%20223010.png)
 
 ### Key Features
 
 ✨ **Modern Web Interface**
-- ChatGPT-style landing page with welcoming design
+- Modern landing page with welcoming design
 - Conversation management (create, save, switch, delete)
 - Clean, animated UI with expandable sidebar
 - Real-time typing indicators and status updates
@@ -94,6 +98,8 @@ Open your browser to **http://localhost:5000** and start chatting!
    - Select or drag-and-drop your documents (PDF, DOCX, TXT, images)
    - EDITH will process and index them automatically
 
+![Upload Interface](images/Screenshot%202025-11-09%20223330.png)
+
 2. **Start a Conversation**
    - Type your first message on the landing page
    - A new numbered conversation will be created automatically
@@ -118,6 +124,8 @@ EDITH: [Responds naturally without searching notes]
 You: Can you explain that in more detail?
 EDITH: [References previous conversation context]
 ```
+
+![Conversation with Context](images/Screenshot%202025-11-09%20223314.png)
 
 ### Managing Conversations
 
