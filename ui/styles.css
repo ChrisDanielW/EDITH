@@ -284,24 +284,46 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+    padding: 20px 0;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border-color);
     width: 100%;
+    cursor: pointer;
+    transition: var(--transition);
 }
 
-.sidebar-header .logo-icon {
-    font-size: 32px;
-    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));
+.sidebar-header:hover {
+    background: var(--bg-tertiary);
 }
 
-.sidebar-header .logo-text {
-    font-size: 12px;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-align: center;
+/* Hamburger Icon */
+.hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.hamburger-icon span {
+    width: 24px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: var(--transition);
+}
+
+.sidebar.expanded .hamburger-icon span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.sidebar.expanded .hamburger-icon span:nth-child(2) {
+    opacity: 0;
+}
+
+.sidebar.expanded .hamburger-icon span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
 }
 
 .sidebar-actions {
@@ -514,6 +536,120 @@ body {
     padding: 30px;
     padding-bottom: 0;
 }
+
+/* ==========================================
+   LANDING PAGE
+   ========================================== */
+
+.landing-page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.landing-content {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.landing-logo {
+    margin-bottom: 40px;
+}
+
+.landing-logo-icon {
+    font-size: 80px;
+    display: block;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.5));
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.landing-title {
+    font-size: 48px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+}
+
+.landing-subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 30px;
+}
+
+.landing-welcome {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 30px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.landing-welcome p {
+    margin: 0 0 15px 0;
+}
+
+.landing-welcome p:last-child {
+    margin: 0;
+}
+
+.landing-welcome strong {
+    color: var(--text-primary);
+}
+
+.landing-hints {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.hint-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: var(--transition);
+}
+
+.hint-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(99, 102, 241, 0.2);
+}
+
+.hint-icon {
+    font-size: 32px;
+}
+
+.hint-card span:last-child {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* ==========================================
+   CHAT MESSAGES
+   ========================================== */
 
 .chat-messages {
     flex: 1;

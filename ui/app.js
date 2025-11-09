@@ -8,7 +8,6 @@ const API_BASE_URL = 'http://localhost:5000/api';
 const chatMessages = document.getElementById('chatMessages');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
-const clearBtn = document.getElementById('clearBtn');
 const statsBtn = document.getElementById('statsBtn');
 const uploadBtn = document.getElementById('uploadBtn');
 const statsPanel = document.getElementById('statsPanel');
@@ -21,18 +20,17 @@ const fileInput = document.getElementById('fileInput');
 const uploadProgress = document.getElementById('uploadProgress');
 const progressFill = document.getElementById('progressFill');
 const uploadStatus = document.getElementById('uploadStatus');
-const clearModal = document.getElementById('clearModal');
-const closeClearModal = document.getElementById('closeClearModal');
-const cancelClear = document.getElementById('cancelClear');
-const confirmClear = document.getElementById('confirmClear');
 const leftSidebar = document.getElementById('leftSidebar');
 const conversationsList = document.getElementById('conversationsList');
 const newConversationBtn = document.getElementById('newConversationBtn');
+const landingPage = document.getElementById('landingPage');
+const landingWelcome = document.getElementById('landingWelcome');
 
 // State
 let isProcessing = false;
 let currentConversationId = null;
 let conversations = [];
+let isLandingPage = true;
 
 // Load conversations from localStorage
 function loadConversations() {
@@ -41,15 +39,37 @@ function loadConversations() {
         conversations = JSON.parse(saved);
     }
     
-    // If no conversations exist, create a default one
-    if (conversations.length === 0) {
-        createNewConversation();
-    } else {
-        currentConversationId = conversations[0].id;
-        loadConversation(currentConversationId);
-    }
+    // Always show landing page on initial load
+    showLandingPage();
     
     renderConversationsList();
+}
+
+// Show landing page
+function showLandingPage() {
+    isLandingPage = true;
+    landingPage.style.display = 'flex';
+    chatMessages.style.display = 'none';
+    currentConversationId = null;
+    
+    // Set a random welcome message
+    const welcomeMsg = getRandomWelcomeMessage();
+    landingWelcome.innerHTML = welcomeMsg;
+    
+    // Hide the new conversation button on landing page
+    newConversationBtn.style.display = 'none';
+    
+    renderConversationsList();
+}
+
+// Hide landing page and show chat
+function hideLandingPage() {
+    isLandingPage = false;
+    landingPage.style.display = 'none';
+    chatMessages.style.display = 'flex';
+    
+    // Show the new conversation button when in a conversation
+    newConversationBtn.style.display = 'flex';
 }
 
 // Save conversations to localStorage
@@ -57,11 +77,21 @@ function saveConversations() {
     localStorage.setItem('edith_conversations', JSON.stringify(conversations));
 }
 
-// Create a new conversation
-function createNewConversation() {
+// Create a new conversation (called when user sends first message)
+function createNewConversation(firstMessage) {
+    // Find the highest conversation number to increment from
+    let maxNumber = 0;
+    conversations.forEach(conv => {
+        const match = conv.title.match(/Conversation (\d+)/);
+        if (match) {
+            maxNumber = Math.max(maxNumber, parseInt(match[1]));
+        }
+    });
+    const conversationNumber = maxNumber + 1;
+    
     const conversation = {
         id: Date.now(),
-        title: 'New Conversation',
+        title: `Conversation ${conversationNumber}`,
         date: new Date().toISOString(),
         messages: []
     };
@@ -70,16 +100,11 @@ function createNewConversation() {
     currentConversationId = conversation.id;
     saveConversations();
     
-    // Clear current chat
-    const messages = chatMessages.querySelectorAll('.message');
-    messages.forEach((msg, index) => {
-        if (index > 0) {  // Skip welcome message
-            msg.remove();
-        }
-    });
+    // Hide landing page and show chat
+    hideLandingPage();
+    chatMessages.innerHTML = ''; // Clear all messages
     
     renderConversationsList();
-    showToast('New conversation started', 'success');
 }
 
 // Load a conversation
@@ -89,13 +114,11 @@ function loadConversation(conversationId) {
     
     if (!conversation) return;
     
-    // Clear current messages (except welcome)
-    const messages = chatMessages.querySelectorAll('.message');
-    messages.forEach((msg, index) => {
-        if (index > 0) {  // Skip welcome message
-            msg.remove();
-        }
-    });
+    // Hide landing page and show chat
+    hideLandingPage();
+    
+    // Clear current messages
+    chatMessages.innerHTML = '';
     
     // Load saved messages
     conversation.messages.forEach(msg => {
@@ -115,12 +138,12 @@ function deleteConversation(conversationId, event) {
     conversations.splice(index, 1);
     saveConversations();
     
-    // If we deleted the current conversation, switch to another
+    // If we deleted the current conversation, switch to another or show landing
     if (conversationId === currentConversationId) {
         if (conversations.length > 0) {
             loadConversation(conversations[0].id);
         } else {
-            createNewConversation();
+            showLandingPage();
         }
     }
     
@@ -165,19 +188,6 @@ function renderConversationsList() {
         
         conversationsList.appendChild(item);
     });
-}
-
-// Update conversation title based on first message
-function updateConversationTitle(text) {
-    const conversation = conversations.find(c => c.id === currentConversationId);
-    if (!conversation) return;
-    
-    // Only update if it's still "New Conversation"
-    if (conversation.title === 'New Conversation') {
-        conversation.title = text.substring(0, 30) + (text.length > 30 ? '...' : '');
-        saveConversations();
-        renderConversationsList();
-    }
 }
 
 // Save message to current conversation
@@ -256,19 +266,11 @@ function getRandomWelcomeMessage() {
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadRandomWelcomeMessage();
     loadConversations();
     setupEventListeners();
     checkAPIHealth();
     autoResizeTextarea();
 });
-
-function loadRandomWelcomeMessage() {
-    const welcomeMessageDiv = document.querySelector('#welcomeMessage .message-text');
-    if (welcomeMessageDiv) {
-        welcomeMessageDiv.innerHTML = getRandomWelcomeMessage();
-    }
-}
 
 function setupEventListeners() {
     // Sidebar toggle
@@ -279,7 +281,7 @@ function setupEventListeners() {
     // New conversation button
     newConversationBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        createNewConversation();
+        showLandingPage();
     });
     
     // Send message
@@ -293,18 +295,6 @@ function setupEventListeners() {
     
     // Auto-resize textarea
     userInput.addEventListener('input', autoResizeTextarea);
-    
-    // Clear chat modal
-    clearBtn.addEventListener('click', () => clearModal.style.display = 'flex');
-    closeClearModal.addEventListener('click', () => clearModal.style.display = 'none');
-    cancelClear.addEventListener('click', () => clearModal.style.display = 'none');
-    confirmClear.addEventListener('click', () => {
-        clearModal.style.display = 'none';
-        performClearChat();
-    });
-    clearModal.addEventListener('click', (e) => {
-        if (e.target === clearModal) clearModal.style.display = 'none';
-    });
     
     // Stats toggle
     statsBtn.addEventListener('click', toggleStats);
@@ -348,6 +338,11 @@ async function handleSendMessage() {
     const message = userInput.value.trim();
     
     if (!message || isProcessing) return;
+    
+    // If on landing page, create new conversation with this message
+    if (isLandingPage) {
+        createNewConversation(message);
+    }
     
     // Add user message to chat
     addMessage(message, 'user');
@@ -474,11 +469,6 @@ function addMessage(text, sender, metadata = {}, shouldSave = true) {
     // Save message to conversation if shouldSave is true
     if (shouldSave && sender !== 'system') {
         saveMessageToConversation(text, sender, metadata);
-        
-        // Update conversation title if it's a user message
-        if (sender === 'user') {
-            updateConversationTitle(text);
-        }
     }
 }
 
@@ -551,17 +541,6 @@ async function loadStats() {
 function clearChat() {
     // Show the clear confirmation modal
     clearModal.style.display = 'flex';
-}
-
-function performClearChat() {
-    // Keep only the welcome message
-    const messages = chatMessages.querySelectorAll('.message');
-    messages.forEach((msg, index) => {
-        if (index > 0) {  // Skip first (welcome) message
-            msg.remove();
-        }
-    });
-    showToast('Chat cleared!', 'success');
 }
 
 function autoResizeTextarea() {

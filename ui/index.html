@@ -14,8 +14,11 @@
         <!-- Left Sidebar -->
         <aside class="sidebar sidebar-left" id="leftSidebar">
             <div class="sidebar-header">
-                <div class="logo-icon">👓</div>
-                <div class="logo-text" data-full-text="Even Disconnected, I'm The Helper"></div>
+                <div class="hamburger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </div>
             
             <!-- Expanded Sidebar Content -->
@@ -37,10 +40,6 @@
                 <button id="statsBtn" class="sidebar-btn" title="View Stats">
                     📈
                     <span>Stats</span>
-                </button>
-                <button id="clearBtn" class="sidebar-btn" title="Clear Chat">
-                    🗑️
-                    <span>Clear</span>
                 </button>
             </div>
         </aside>
@@ -68,16 +67,37 @@
                 </div>
             </div>
 
-            <!-- Chat Messages -->
-            <div id="chatMessages" class="chat-messages">
-                <!-- Welcome Message (will be populated by JavaScript) -->
-                <div id="welcomeMessage" class="message assistant-message welcome-message">
-                    <div class="message-content">
-                        <div class="message-text">
-                            <!-- Dynamic content loaded by app.js -->
+            <!-- Landing Page -->
+            <div id="landingPage" class="landing-page">
+                <div class="landing-content">
+                    <div class="landing-logo">
+                        <span class="landing-logo-icon">👓</span>
+                        <h1 class="landing-title">EDITH</h1>
+                        <p class="landing-subtitle">Even Disconnected, I'm The Helper</p>
+                    </div>
+                    <div id="landingWelcome" class="landing-welcome">
+                        <!-- Dynamic welcome message -->
+                    </div>
+                    <div class="landing-hints">
+                        <div class="hint-card">
+                            <span class="hint-icon">💬</span>
+                            <span>Chat naturally</span>
+                        </div>
+                        <div class="hint-card">
+                            <span class="hint-icon">🔍</span>
+                            <span>Search your notes</span>
+                        </div>
+                        <div class="hint-card">
+                            <span class="hint-icon">📚</span>
+                            <span>Learn complex topics</span>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chatMessages" class="chat-messages" style="display: none;">
+                <!-- Messages will be added here -->
             </div>
 
             <!-- Typing Indicator -->
@@ -146,24 +166,6 @@
     </div>
 
     <!-- Clear Chat Confirmation Modal -->
-    <div id="clearModal" class="modal" style="display: none;">
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h2>🗑️ Clear Chat</h2>
-                <button id="closeClearModal" class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="margin-bottom: 20px; color: var(--text-secondary);">
-                    Are you sure you want to clear the chat? This action cannot be undone.
-                </p>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button id="cancelClear" class="modal-btn modal-btn-secondary">Cancel</button>
-                    <button id="confirmClear" class="modal-btn modal-btn-danger">Clear Chat</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast Notifications -->
     <div id="toastContainer" class="toast-container"></div>
 

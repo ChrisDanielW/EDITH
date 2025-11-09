@@ -357,6 +357,67 @@ def stats():
         }), 500
 
 
+@app.route('/api/generate-title', methods=['POST'])
+def generate_title():
+    """
+    Generate a conversation title based on the first message
+    
+    Request body:
+    {
+        "message": "What is polymorphism in OOP?"
+    }
+    
+    Response:
+    {
+        "title": "Understanding OOP Polymorphism"
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'message' not in data:
+            return jsonify({
+                'error': 'Missing message parameter'
+            }), 400
+        
+        message = data['message']
+        logger.info(f"Generating title for message: {message[:50]}...")
+        
+        # Get EDITH instance
+        edith_instance = get_edith()
+        
+        # Create a prompt for title generation
+        title_prompt = f"Generate a brief, descriptive 3-5 word title for a conversation that starts with this message: \"{message}\"\n\nRespond with ONLY the title, nothing else."
+        
+        # Use conversational mode with low token limit for quick response
+        result = edith_instance.query(title_prompt, use_rag=False)
+        
+        # Extract the title from the response
+        title = result.get('answer', '').strip()
+        
+        # Clean up the title (remove quotes if present)
+        title = title.strip('"\'').strip()
+        
+        # Fallback if title is too long or empty
+        if not title or len(title) > 60:
+            title = message[:50] + ('...' if len(message) > 50 else '')
+        
+        logger.info(f"Generated title: {title}")
+        
+        return jsonify({
+            'title': title
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating title: {str(e)}")
+        # Fallback to message substring
+        message = data.get('message', 'New Conversation')
+        fallback_title = message[:50] + ('...' if len(message) > 50 else '')
+        return jsonify({
+            'title': fallback_title
+        })
+
+
 if __name__ == '__main__':
     print("\n" + "=" * 60)
     print("🚀 Starting EDITH API Server")
