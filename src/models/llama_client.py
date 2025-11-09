@@ -199,7 +199,10 @@ class LlamaClient:
                 "options": {
                     "num_predict": max_tokens,
                     "temperature": temperature,
-                    "stop": stop_sequences or []
+                    "stop": stop_sequences or [],
+                    "num_thread": 4,  # Limit CPU threads to reduce lag
+                    "num_ctx": 2048,  # Smaller context window for faster processing
+                    "num_batch": 128,  # Smaller batch size
                 }
             }
             
