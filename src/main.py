@@ -197,7 +197,7 @@ Remember: You're helpful, but also have personality. Be real, not corporate."""
             logger.error(f"Error during document ingestion: {str(e)}")
             raise
     
-    def query(self, question: str, filter_metadata: dict = None, use_rag: bool = None) -> dict:
+    def query(self, question: str, filter_metadata: dict = None, use_rag: bool = None, conversation_history: list = None) -> dict:
         """
         Query with intelligent routing between RAG and conversation
         
@@ -205,11 +205,15 @@ Remember: You're helpful, but also have personality. Be real, not corporate."""
             question: User's question
             filter_metadata: Optional metadata filters
             use_rag: Force RAG usage (None = auto-detect)
+            conversation_history: List of previous messages [{"role": "user", "content": "..."}, ...]
             
         Returns:
             Dictionary with answer and sources
         """
         logger.info(f"Query: {question}")
+        
+        if conversation_history is None:
+            conversation_history = []
         
         try:
             # Classify query if not forced
@@ -222,10 +226,10 @@ Remember: You're helpful, but also have personality. Be real, not corporate."""
             
             if use_rag:
                 # Use RAG for knowledge queries
-                return self._query_with_rag(question, filter_metadata)
+                return self._query_with_rag(question, filter_metadata, conversation_history)
             else:
                 # Use direct conversation for casual queries
-                return self._query_conversational(question)
+                return self._query_conversational(question, conversation_history)
                 
         except Exception as e:
             logger.error(f"Error processing query: {str(e)}")
@@ -238,8 +242,11 @@ Remember: You're helpful, but also have personality. Be real, not corporate."""
                 'mode': 'error'
             }
     
-    def _query_with_rag(self, question: str, filter_metadata: dict = None) -> dict:
+    def _query_with_rag(self, question: str, filter_metadata: dict = None, conversation_history: list = None) -> dict:
         """Query using RAG (knowledge from notes)"""
+        if conversation_history is None:
+            conversation_history = []
+            
         result = self.rag_service.query(question, filter_metadata)
         
         logger.info(f"Answer confidence: {result['confidence']:.2f}")
@@ -249,20 +256,28 @@ Remember: You're helpful, but also have personality. Be real, not corporate."""
         if result['num_sources'] == 0 and result['confidence'] == 0.0:
             logger.info("No relevant info in notes, falling back to conversational mode")
             
+            # Build conversation context from history
+            context_messages = []
+            for msg in conversation_history[-6:]:  # Last 3 exchanges
+                role = "User" if msg['role'] == 'user' else "EDITH"
+                context_messages.append(f"{role}: {msg['content']}")
+            context_str = "\n".join(context_messages) if context_messages else ""
+            
             # Use LLM to answer conversationally with a subtle hint
             answer = self.llama_client.chat(
                 message=question,
-                context="",
-                system_prompt="""You are EDITH, a helpful AI assistant.
+                context=context_str,
+                system_prompt="""You are EDITH, a helpful AI assistant for studying.
 
 The user asked about something, but you don't have specific information about it in their notes.
 
 Instructions:
 - Answer the question naturally based on your general knowledge
+- Provide helpful, detailed explanations (3-5 sentences) since you're helping with studies
 - Subtly mention you don't have it in their notes (e.g., "I don't see that in your notes, but..." or "Not in your notes, though..." or "Your notes don't mention this, but...")
-- Keep it brief and conversational (2-3 sentences)
-- Be helpful despite not having the specific info""",
-                max_tokens=200  # Limited tokens for fallback responses
+- Be conversational and refer to previous messages if relevant
+- Be helpful despite not having the specific info in the notes""",
+                max_tokens=400  # More tokens for better educational responses
             )
             
             return {
@@ -276,47 +291,25 @@ Instructions:
         result['mode'] = 'rag'
         return result
     
-    def _query_conversational(self, question: str) -> dict:
+    def _query_conversational(self, question: str, conversation_history: list = None) -> dict:
         """Handle conversational queries without RAG"""
+        if conversation_history is None:
+            conversation_history = []
+            
         try:
-            # Fallback responses for common phrases
-            fallback_responses = {
-                'hi': "Hey! What's up?",
-                'hello': "Hello! How can I help you today?",
-                'hey': "Hey there! Need something?",
-                'thanks': "You're welcome! 😊",
-                'thank you': "Happy to help!",
-                'bye': "See ya! Come back anytime.",
-                'goodbye': "Catch you later!",
-                'how are you': "I'm doing great! Always ready to help with your notes. How about you?",
-                'good morning': "Good morning! Ready to tackle the day?",
-                'good night': "Good night! Sleep well!",
-            }
+            # Build conversation context from history
+            context_messages = []
+            for msg in conversation_history[-6:]:  # Last 3 exchanges
+                role = "User" if msg['role'] == 'user' else "EDITH"
+                context_messages.append(f"{role}: {msg['content']}")
+            context_str = "\n".join(context_messages) if context_messages else ""
             
-            question_lower = question.lower().strip()
-            for key, response in fallback_responses.items():
-                if key in question_lower:
-                    logger.info("Generated conversational response (fallback)")
-                    return {
-                        'answer': response,
-                        'confidence': 1.0,
-                        'sources': [],
-                        'num_sources': 0,
-                        'mode': 'conversational'
-                    }
-            
-            # Use LLM for other conversational queries (with limited tokens for speed)
-            prompt = f"""{self.conversational_system_prompt}
-
-User: {question}
-
-EDITH:"""
-            
+            # Use LLM for all conversational queries with proper context
             answer = self.llama_client.chat(
                 message=question,
-                context="",
+                context=context_str,
                 system_prompt=self.conversational_system_prompt,
-                max_tokens=150  # Shorter responses for conversational mode
+                max_tokens=350  # More tokens for better conversational responses
             )
             
             logger.info("Generated conversational response (LLM)")

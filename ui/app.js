@@ -357,13 +357,23 @@ async function handleSendMessage() {
     sendBtn.disabled = true;
     
     try {
-        // Send to API
+        // Get conversation history
+        const conversation = conversations.find(c => c.id === currentConversationId);
+        const conversationHistory = conversation ? conversation.messages.map(msg => ({
+            role: msg.role,
+            content: msg.text
+        })) : [];
+        
+        // Send to API with conversation history
         const response = await fetch(`${API_BASE_URL}/query`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ query: message })
+            body: JSON.stringify({ 
+                query: message,
+                conversation_history: conversationHistory
+            })
         });
         
         if (!response.ok) {

@@ -88,17 +88,22 @@ class RAGService:
             context = self._prepare_context(relevant_results, max_length=max_context_length)
             logger.debug(f"Context preview (first 500 chars): {context[:500]}...")
             
-            # 5. Generate answer using LLaMA with context (succinct mode)
+            # 5. Generate answer using LLaMA with context (detailed educational mode)
             answer = self.llama_client.chat(
                 message=question,
                 context=context,
-                system_prompt="""You are EDITH, a precise and helpful AI assistant.
+                system_prompt="""You are EDITH, a helpful AI study assistant.
+
 When answering from provided context:
-- Be direct and concise (2-3 sentences max unless asked for details)
-- Use bullet points for lists
-- If the answer is in the context, state it clearly
-- If uncertain or info missing, say so briefly
-- Don't add information not in the context"""
+- Provide thorough, educational explanations (4-6 sentences typically)
+- Use examples from the context when available
+- Break down complex topics clearly
+- Use bullet points for lists or multiple related points
+- Be conversational but informative - you're helping someone study
+- If the answer is in the context, explain it well
+- If uncertain or info is partial, acknowledge it but still be helpful
+- Stay focused on the context provided""",
+                max_tokens=500  # Increased for better educational responses
             )
             
             # 6. Prepare sources information

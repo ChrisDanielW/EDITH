@@ -74,7 +74,8 @@ def query():
     Request body:
     {
         "query": "What is polymorphism?",
-        "use_rag": true/false (optional, auto-detect if not provided)
+        "use_rag": true/false (optional, auto-detect if not provided),
+        "conversation_history": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
     }
     
     Response:
@@ -96,14 +97,15 @@ def query():
         
         user_query = data['query']
         use_rag = data.get('use_rag', None)
+        conversation_history = data.get('conversation_history', [])
         
-        logger.info(f"Received query: {user_query}")
+        logger.info(f"Received query: {user_query} (history: {len(conversation_history)} messages)")
         
         # Get EDITH instance
         edith_instance = get_edith()
         
-        # Process query
-        result = edith_instance.query(user_query, use_rag=use_rag)
+        # Process query with conversation history
+        result = edith_instance.query(user_query, use_rag=use_rag, conversation_history=conversation_history)
         
         logger.info(f"Query processed - Mode: {result.get('mode')}, Sources: {result.get('num_sources', 0)}")
         
