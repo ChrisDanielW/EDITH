@@ -23,7 +23,7 @@ class Settings:
     LLAMA_MODEL_PATH = os.getenv("LLAMA_MODEL_PATH", "llama-2-7b-chat")
     LLAMA_MODEL_TYPE = os.getenv("LLAMA_MODEL_TYPE", "llama-2-7b-chat.gguf")
     USE_GPU = os.getenv("USE_GPU", "true").lower() == "true"
-    MAX_TOKENS = int(os.getenv("MAX_TOKENS", 2048))
+    MAX_TOKENS = int(os.getenv("MAX_TOKENS", 1024))  # Increased for RAG mode responses
     TEMPERATURE = float(os.getenv("TEMPERATURE", 0.7))
     
     # ========== Embedding Model Settings ==========
@@ -38,7 +38,7 @@ class Settings:
     CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 200))
     
     # ========== RAG Settings ==========
-    TOP_K_RESULTS = int(os.getenv("TOP_K_RESULTS", 5))  # Number of relevant chunks to retrieve
+    TOP_K_RESULTS = int(os.getenv("TOP_K_RESULTS", 3))  # Reduced from 5 for faster retrieval
     SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", 0.7))
     
     # ========== Summary Settings ==========

@@ -261,7 +261,8 @@ Instructions:
 - Answer the question naturally based on your general knowledge
 - Subtly mention you don't have it in their notes (e.g., "I don't see that in your notes, but..." or "Not in your notes, though..." or "Your notes don't mention this, but...")
 - Keep it brief and conversational (2-3 sentences)
-- Be helpful despite not having the specific info"""
+- Be helpful despite not having the specific info""",
+                max_tokens=200  # Limited tokens for fallback responses
             )
             
             return {
@@ -304,7 +305,7 @@ Instructions:
                         'mode': 'conversational'
                     }
             
-            # Use LLM for other conversational queries
+            # Use LLM for other conversational queries (with limited tokens for speed)
             prompt = f"""{self.conversational_system_prompt}
 
 User: {question}
@@ -314,7 +315,8 @@ EDITH:"""
             answer = self.llama_client.chat(
                 message=question,
                 context="",
-                system_prompt=self.conversational_system_prompt
+                system_prompt=self.conversational_system_prompt,
+                max_tokens=150  # Shorter responses for conversational mode
             )
             
             logger.info("Generated conversational response (LLM)")

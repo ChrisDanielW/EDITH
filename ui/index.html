@@ -11,98 +11,67 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <div class="logo-icon">👓</div>
-                    <div class="logo-text">
-                        <h1>EDITH</h1>
-                        <p class="subtitle">Even Disconnected, I'm The Helper</p>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <button id="uploadBtn" class="btn btn-primary" title="Upload Document">
-                        📤 Upload
-                    </button>
-                    <button id="summaryBtn" class="btn btn-secondary" title="Generate Summary">
-                        📊 Summary
-                    </button>
-                    <button id="statsBtn" class="btn btn-secondary" title="View Stats">
-                        📈 Stats
-                    </button>
-                    <button id="clearBtn" class="btn btn-secondary" title="Clear Chat">
-                        🗑️ Clear
-                    </button>
-                </div>
+        <!-- Left Sidebar -->
+        <aside class="sidebar sidebar-left">
+            <div class="sidebar-header">
+                <div class="logo-icon">👓</div>
+                <div class="logo-text">EDITH</div>
             </div>
-        </header>
-
-        <!-- Upload Modal (hidden by default) -->
-        <div id="uploadModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>📤 Upload Document</h2>
-                    <button id="closeUploadModal" class="close-btn">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="upload-area" id="uploadArea">
-                        <input type="file" id="fileInput" accept=".pdf,.docx,.pptx,.txt,.md,.png,.jpg,.jpeg" style="display: none;">
-                        <div class="upload-icon">📄</div>
-                        <p class="upload-text">Click to select a file or drag and drop</p>
-                        <p class="upload-hint">Supported: PDF, DOCX, PPTX, TXT, MD, Images (PNG, JPG)</p>
-                    </div>
-                    <div id="uploadProgress" class="upload-progress" style="display: none;">
-                        <div class="progress-bar">
-                            <div id="progressFill" class="progress-fill"></div>
-                        </div>
-                        <p id="uploadStatus" class="upload-status">Uploading...</p>
-                    </div>
-                </div>
+            <div class="sidebar-actions">
+                <button id="statsBtn" class="sidebar-btn" title="View Stats">
+                    📈
+                    <span>Stats</span>
+                </button>
+                <button id="clearBtn" class="sidebar-btn" title="Clear Chat">
+                    🗑️
+                    <span>Clear</span>
+                </button>
             </div>
-        </div>
-
-        <!-- Stats Panel (hidden by default) -->
-        <div id="statsPanel" class="stats-panel" style="display: none;">
-            <div class="stats-content">
-                <h3>📊 Vector Database Stats</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-label">Total Vectors:</span>
-                        <span id="statVectors" class="stat-value">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Dimension:</span>
-                        <span id="statDimension" class="stat-value">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Index Fullness:</span>
-                        <span id="statFullness" class="stat-value">-</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </aside>
 
         <!-- Chat Container -->
         <main class="chat-container">
-            <div id="chatMessages" class="chat-messages">
-                <!-- Welcome Message -->
-                <div class="message assistant-message welcome-message">
-                    <div class="message-avatar">🤖</div>
-                    <div class="message-content">
-                        <div class="message-text">
-                            <p><strong>Hello! I'm EDITH</strong> 👋</p>
-                            <p>I'm your personal AI assistant for notes. I can:</p>
-                            <ul>
-                                <li>💬 Chat with you naturally</li>
-                                <li>🔍 Answer questions from your notes</li>
-                                <li>📊 Generate summaries</li>
-                                <li>📚 Help you understand complex topics</li>
-                            </ul>
-                            <p>Try asking me something like "What is polymorphism?" or just say hi!</p>
+            <!-- Stats Panel (overlay, hidden by default) -->
+            <div id="statsPanel" class="stats-panel" style="display: none;">
+                <div class="stats-content">
+                    <h3>📊 Vector Database Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Vectors:</span>
+                            <span id="statVectors" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Dimension:</span>
+                            <span id="statDimension" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Index Fullness:</span>
+                            <span id="statFullness" class="stat-value">-</span>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chatMessages" class="chat-messages">
+                <!-- Welcome Message (will be populated by JavaScript) -->
+                <div id="welcomeMessage" class="message assistant-message welcome-message">
+                    <div class="message-content">
+                        <div class="message-text">
+                            <!-- Dynamic content loaded by app.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div id="typingIndicator" class="typing-indicator" style="display: none;">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="typing-text">EDITH is thinking...</span>
             </div>
 
             <!-- Input Area -->
@@ -126,13 +95,55 @@
             </div>
         </main>
 
-        <!-- Typing Indicator -->
-        <div id="typingIndicator" class="typing-indicator" style="display: none;">
-            <div class="message-avatar">🤖</div>
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
+        <!-- Right Sidebar -->
+        <aside class="sidebar sidebar-right">
+            <button id="uploadBtn" class="sidebar-btn sidebar-btn-primary" title="Upload Document">
+                📤
+                <span>Upload</span>
+            </button>
+        </aside>
+    </div>
+
+    <!-- Upload Modal (global overlay) -->
+    <div id="uploadModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📤 Upload Document</h2>
+                <button id="closeUploadModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.pptx,.txt,.md,.png,.jpg,.jpeg" multiple style="display: none;">
+                    <div class="upload-icon">📄</div>
+                    <p class="upload-text">Click to select files or drag and drop</p>
+                    <p class="upload-hint">Supported: PDF, DOCX, PPTX, TXT, MD, Images (PNG, JPG)</p>
+                    <p class="upload-hint" style="margin-top: 5px; color: var(--accent-primary);">✨ You can select multiple files at once!</p>
+                </div>
+                <div id="uploadProgress" class="upload-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <p id="uploadStatus" class="upload-status">Uploading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Chat Confirmation Modal -->
+    <div id="clearModal" class="modal" style="display: none;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>🗑️ Clear Chat</h2>
+                <button id="closeClearModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                    Are you sure you want to clear the chat? This action cannot be undone.
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button id="cancelClear" class="modal-btn modal-btn-secondary">Cancel</button>
+                    <button id="confirmClear" class="modal-btn modal-btn-danger">Clear Chat</button>
+                </div>
             </div>
         </div>
     </div>

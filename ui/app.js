@@ -9,7 +9,6 @@ const chatMessages = document.getElementById('chatMessages');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
 const clearBtn = document.getElementById('clearBtn');
-const summaryBtn = document.getElementById('summaryBtn');
 const statsBtn = document.getElementById('statsBtn');
 const uploadBtn = document.getElementById('uploadBtn');
 const statsPanel = document.getElementById('statsPanel');
@@ -22,19 +21,93 @@ const fileInput = document.getElementById('fileInput');
 const uploadProgress = document.getElementById('uploadProgress');
 const progressFill = document.getElementById('progressFill');
 const uploadStatus = document.getElementById('uploadStatus');
+const clearModal = document.getElementById('clearModal');
+const closeClearModal = document.getElementById('closeClearModal');
+const cancelClear = document.getElementById('cancelClear');
+const confirmClear = document.getElementById('confirmClear');
 
 // State
 let isProcessing = false;
+
+// Welcome messages pool
+const WELCOME_MESSAGES = [
+    {
+        greeting: "Hey there! I'm EDITH 👋",
+        message: "I'm here to help you make sense of your notes. Got any questions, or just want to chat?"
+    },
+    {
+        greeting: "Hello! EDITH at your service ✨",
+        message: "I can dig through your notes to find answers, or we can just have a casual conversation. What's on your mind?"
+    },
+    {
+        greeting: "Hi! Ready to dive into your notes? 📚",
+        message: "Ask me anything about what you've uploaded, or just say hi—I'm pretty good at both!"
+    },
+    {
+        greeting: "Let's get studying! 🎯",
+        message: "I'm EDITH, your personal notes assistant. I can help you find information or just keep you company while you work."
+    },
+    {
+        greeting: "Hey! EDITH here 😊",
+        message: "Think of me as your study buddy who actually remembers everything you've written down. What can I help with?"
+    },
+    {
+        greeting: "What's up? I'm EDITH! 👓",
+        message: "I'm here to help you with your notes—whether you need specific info or just want to chat about what you're learning."
+    },
+    {
+        greeting: "Good to see you! 🌟",
+        message: "I'm EDITH, and I'm here to make your notes actually useful. Ask me questions, or we can just talk!"
+    },
+    {
+        greeting: "Hey there, scholar! 📖",
+        message: "EDITH here. I've got your notes memorized, so fire away with questions—or just chat if you need a break!"
+    },
+    {
+        greeting: "Hello! Let's make learning easier 💡",
+        message: "I'm EDITH. I can pull up info from your notes in seconds, or we can just have a friendly conversation."
+    },
+    {
+        greeting: "Hi! Your notes assistant is online, wait no, not really I guess lol ⚡",
+        message: "I'm EDITH—I can help you understand your study materials or just be a conversational companion. Your call!"
+    },
+    {
+        greeting: "EDITH reporting for duty 🎓",
+        message: "I'm here to help you navigate your notes and answer questions. Or we can just chat—I'm surprisingly good company!"
+    },
+    {
+        greeting: "Hey! Time to unlock your notes 🔓",
+        message: "I'm EDITH, and I turn your pile of notes into actual knowledge you can access. What do you want to explore?"
+    },
+    {
+        greeting: "Hello there! Ready to learn? 🌈",
+        message: "I'm EDITH—think of me as your notes on steroids. I can find answers fast or just hang out and chat with you."
+    }
+];
+
+// Get random welcome message
+function getRandomWelcomeMessage() {
+    const message = WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)];
+    return `<p><strong>${message.greeting}</strong></p><p>${message.message}</p>`;
+}
 
 // ==========================================
 // INITIALIZATION
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadRandomWelcomeMessage();
     setupEventListeners();
     checkAPIHealth();
     autoResizeTextarea();
 });
+
+function loadRandomWelcomeMessage() {
+    const welcomeMessageDiv = document.querySelector('#welcomeMessage .message-text');
+    if (welcomeMessageDiv) {
+        welcomeMessageDiv.innerHTML = getRandomWelcomeMessage();
+    }
+}
 
 function setupEventListeners() {
     // Send message
@@ -49,11 +122,17 @@ function setupEventListeners() {
     // Auto-resize textarea
     userInput.addEventListener('input', autoResizeTextarea);
     
-    // Clear chat
-    clearBtn.addEventListener('click', clearChat);
-    
-    // Summary
-    summaryBtn.addEventListener('click', handleSummary);
+    // Clear chat modal
+    clearBtn.addEventListener('click', () => clearModal.style.display = 'flex');
+    closeClearModal.addEventListener('click', () => clearModal.style.display = 'none');
+    cancelClear.addEventListener('click', () => clearModal.style.display = 'none');
+    confirmClear.addEventListener('click', () => {
+        clearModal.style.display = 'none';
+        performClearChat();
+    });
+    clearModal.addEventListener('click', (e) => {
+        if (e.target === clearModal) clearModal.style.display = 'none';
+    });
     
     // Stats toggle
     statsBtn.addEventListener('click', toggleStats);
@@ -159,11 +238,6 @@ function addMessage(text, sender, metadata = {}) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}-message`;
     
-    // Avatar
-    const avatar = document.createElement('div');
-    avatar.className = 'message-avatar';
-    avatar.textContent = sender === 'user' ? '👤' : '🤖';
-    
     // Content container
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
@@ -220,7 +294,6 @@ function addMessage(text, sender, metadata = {}) {
         }
     }
     
-    messageDiv.appendChild(avatar);
     messageDiv.appendChild(contentDiv);
     
     chatMessages.appendChild(messageDiv);
@@ -251,52 +324,6 @@ function scrollToBottom() {
     setTimeout(() => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 100);
-}
-
-// ==========================================
-// SUMMARY
-// ==========================================
-
-async function handleSummary() {
-    if (isProcessing) return;
-    
-    showToast('Generating summary...', 'info');
-    showTyping();
-    isProcessing = true;
-    summaryBtn.disabled = true;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/summary`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ style: 'comprehensive' })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to generate summary');
-        }
-        
-        const data = await response.json();
-        
-        hideTyping();
-        addMessage(
-            `📊 **Summary of Your Notes:**\n\n${data.summary}`,
-            'assistant',
-            { mode: 'rag' }
-        );
-        
-        showToast('Summary generated!', 'success');
-        
-    } catch (error) {
-        console.error('Error:', error);
-        hideTyping();
-        showToast('Failed to generate summary', 'error');
-    } finally {
-        isProcessing = false;
-        summaryBtn.disabled = false;
-    }
 }
 
 // ==========================================
@@ -340,6 +367,11 @@ async function loadStats() {
 // ==========================================
 
 function clearChat() {
+    // Show the clear confirmation modal
+    clearModal.style.display = 'flex';
+}
+
+function performClearChat() {
     // Keep only the welcome message
     const messages = chatMessages.querySelectorAll('.message');
     messages.forEach((msg, index) => {
@@ -415,66 +447,85 @@ document.addEventListener('keydown', (e) => {
 // ==========================================
 
 function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (file) {
-        handleFileUpload(file);
+    const files = Array.from(event.target.files);
+    if (files.length > 0) {
+        handleMultipleFileUploads(files);
     }
 }
 
-async function handleFileUpload(file) {
-    // Validate file type
+async function handleMultipleFileUploads(files) {
+    // Validate file types
     const allowedExtensions = ['.pdf', '.docx', '.pptx', '.txt', '.md', '.png', '.jpg', '.jpeg'];
-    const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+    const validFiles = [];
+    const invalidFiles = [];
     
-    if (!allowedExtensions.includes(fileExt)) {
-        showToast(`File type ${fileExt} not supported`, 'error');
+    for (const file of files) {
+        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+        if (allowedExtensions.includes(fileExt)) {
+            validFiles.push(file);
+        } else {
+            invalidFiles.push(file.name);
+        }
+    }
+    
+    if (invalidFiles.length > 0) {
+        showToast(`Skipped ${invalidFiles.length} unsupported file(s)`, 'warning');
+    }
+    
+    if (validFiles.length === 0) {
+        showToast('No valid files to upload', 'error');
         return;
     }
     
     // Show progress
     uploadProgress.style.display = 'block';
     progressFill.style.width = '0%';
-    uploadStatus.textContent = 'Uploading...';
+    uploadStatus.textContent = `Uploading ${validFiles.length} file(s)...`;
     uploadBtn.disabled = true;
     
+    let successCount = 0;
+    let errorCount = 0;
+    let totalChunks = 0;
+    
     try {
-        // Create form data
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // Simulate progress
-        progressFill.style.width = '30%';
-        
-        // Upload file
-        const response = await fetch(`${API_BASE_URL}/upload`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        progressFill.style.width = '70%';
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Upload failed');
+        for (let i = 0; i < validFiles.length; i++) {
+            const file = validFiles[i];
+            const progress = ((i / validFiles.length) * 100);
+            progressFill.style.width = `${progress}%`;
+            uploadStatus.textContent = `Uploading ${i + 1}/${validFiles.length}: ${file.name}...`;
+            
+            try {
+                const result = await uploadSingleFile(file);
+                successCount++;
+                totalChunks += result.chunks;
+            } catch (error) {
+                console.error(`Error uploading ${file.name}:`, error);
+                errorCount++;
+            }
         }
-        
-        const data = await response.json();
         
         // Complete progress
         progressFill.style.width = '100%';
-        uploadStatus.textContent = 'Processing complete!';
+        uploadStatus.textContent = 'Upload complete!';
         
         // Show success message in chat
-        addMessage(
-            `✅ **Document Uploaded Successfully**\n\n` +
-            `📄 **File:** ${data.filename}\n` +
-            `📊 **Chunks Created:** ${data.chunks}\n\n` +
-            `Your document has been processed and added to the knowledge base. You can now ask questions about it!`,
-            'assistant',
-            { mode: 'system' }
-        );
+        if (successCount > 0) {
+            addMessage(
+                `✅ **Documents Uploaded Successfully**\n\n` +
+                `📄 **Files Uploaded:** ${successCount}\n` +
+                `📊 **Total Chunks Created:** ${totalChunks}\n` +
+                (errorCount > 0 ? `⚠️ **Failed:** ${errorCount}\n` : '') +
+                `\nYour documents have been processed and added to the knowledge base. You can now ask questions about them!`,
+                'assistant',
+                { mode: 'system' }
+            );
+            
+            showToast(`Successfully uploaded ${successCount} file(s)`, 'success');
+        }
         
-        showToast(`Successfully uploaded ${data.filename}`, 'success');
+        if (errorCount > 0) {
+            showToast(`${errorCount} file(s) failed to upload`, 'error');
+        }
         
         // Close modal after a delay
         setTimeout(() => {
@@ -491,4 +542,26 @@ async function handleFileUpload(file) {
     } finally {
         uploadBtn.disabled = false;
     }
+}
+
+async function uploadSingleFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        body: formData
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+    }
+    
+    return await response.json();
+}
+
+// Legacy single file upload function for drag & drop compatibility
+async function handleFileUpload(file) {
+    handleMultipleFileUploads([file]);
 }

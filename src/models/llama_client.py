@@ -325,7 +325,8 @@ User: {user_message} [/INST]"""
         self,
         message: str,
         context: Optional[str] = None,
-        system_prompt: str = "You are EDITH, a helpful AI assistant that analyzes notes and provides comprehensive summaries."
+        system_prompt: str = "You are EDITH, a helpful AI assistant that analyzes notes and provides comprehensive summaries.",
+        max_tokens: Optional[int] = None
     ) -> str:
         """
         Have a chat interaction with the model
@@ -334,10 +335,11 @@ User: {user_message} [/INST]"""
             message: User message
             context: Optional context from vector store
             system_prompt: System prompt for the model
+            max_tokens: Override max tokens for this specific chat
             
         Returns:
             Model response
         """
         prompt = self.create_prompt(system_prompt, message, context)
-        response = self.generate_text(prompt)
+        response = self.generate_text(prompt, max_tokens=max_tokens)
         return response

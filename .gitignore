@@ -3,3 +3,6 @@
 
 src/data/notes/*
 !src/data/notes/.gitkeep
+
+temp/*
+!temp/.gitkeep
