@@ -25,9 +25,169 @@ const clearModal = document.getElementById('clearModal');
 const closeClearModal = document.getElementById('closeClearModal');
 const cancelClear = document.getElementById('cancelClear');
 const confirmClear = document.getElementById('confirmClear');
+const leftSidebar = document.getElementById('leftSidebar');
+const conversationsList = document.getElementById('conversationsList');
+const newConversationBtn = document.getElementById('newConversationBtn');
 
 // State
 let isProcessing = false;
+let currentConversationId = null;
+let conversations = [];
+
+// Load conversations from localStorage
+function loadConversations() {
+    const saved = localStorage.getItem('edith_conversations');
+    if (saved) {
+        conversations = JSON.parse(saved);
+    }
+    
+    // If no conversations exist, create a default one
+    if (conversations.length === 0) {
+        createNewConversation();
+    } else {
+        currentConversationId = conversations[0].id;
+        loadConversation(currentConversationId);
+    }
+    
+    renderConversationsList();
+}
+
+// Save conversations to localStorage
+function saveConversations() {
+    localStorage.setItem('edith_conversations', JSON.stringify(conversations));
+}
+
+// Create a new conversation
+function createNewConversation() {
+    const conversation = {
+        id: Date.now(),
+        title: 'New Conversation',
+        date: new Date().toISOString(),
+        messages: []
+    };
+    
+    conversations.unshift(conversation);
+    currentConversationId = conversation.id;
+    saveConversations();
+    
+    // Clear current chat
+    const messages = chatMessages.querySelectorAll('.message');
+    messages.forEach((msg, index) => {
+        if (index > 0) {  // Skip welcome message
+            msg.remove();
+        }
+    });
+    
+    renderConversationsList();
+    showToast('New conversation started', 'success');
+}
+
+// Load a conversation
+function loadConversation(conversationId) {
+    currentConversationId = conversationId;
+    const conversation = conversations.find(c => c.id === conversationId);
+    
+    if (!conversation) return;
+    
+    // Clear current messages (except welcome)
+    const messages = chatMessages.querySelectorAll('.message');
+    messages.forEach((msg, index) => {
+        if (index > 0) {  // Skip welcome message
+            msg.remove();
+        }
+    });
+    
+    // Load saved messages
+    conversation.messages.forEach(msg => {
+        addMessage(msg.text, msg.role, msg.metadata, false); // false = don't save
+    });
+    
+    renderConversationsList();
+}
+
+// Delete a conversation
+function deleteConversation(conversationId, event) {
+    event.stopPropagation();
+    
+    const index = conversations.findIndex(c => c.id === conversationId);
+    if (index === -1) return;
+    
+    conversations.splice(index, 1);
+    saveConversations();
+    
+    // If we deleted the current conversation, switch to another
+    if (conversationId === currentConversationId) {
+        if (conversations.length > 0) {
+            loadConversation(conversations[0].id);
+        } else {
+            createNewConversation();
+        }
+    }
+    
+    renderConversationsList();
+    showToast('Conversation deleted', 'success');
+}
+
+// Render conversations list
+function renderConversationsList() {
+    conversationsList.innerHTML = '';
+    
+    conversations.forEach(conversation => {
+        const item = document.createElement('div');
+        item.className = 'conversation-item';
+        if (conversation.id === currentConversationId) {
+            item.className += ' active';
+        }
+        
+        const date = new Date(conversation.date);
+        const formattedDate = date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        item.innerHTML = `
+            <div class="conversation-title">${conversation.title}</div>
+            <div class="conversation-date">${formattedDate}</div>
+            <button class="conversation-delete" title="Delete">×</button>
+        `;
+        
+        item.addEventListener('click', () => {
+            loadConversation(conversation.id);
+            if (window.innerWidth <= 768) {
+                leftSidebar.classList.remove('expanded');
+            }
+        });
+        
+        const deleteBtn = item.querySelector('.conversation-delete');
+        deleteBtn.addEventListener('click', (e) => deleteConversation(conversation.id, e));
+        
+        conversationsList.appendChild(item);
+    });
+}
+
+// Update conversation title based on first message
+function updateConversationTitle(text) {
+    const conversation = conversations.find(c => c.id === currentConversationId);
+    if (!conversation) return;
+    
+    // Only update if it's still "New Conversation"
+    if (conversation.title === 'New Conversation') {
+        conversation.title = text.substring(0, 30) + (text.length > 30 ? '...' : '');
+        saveConversations();
+        renderConversationsList();
+    }
+}
+
+// Save message to current conversation
+function saveMessageToConversation(text, role, metadata = {}) {
+    const conversation = conversations.find(c => c.id === currentConversationId);
+    if (!conversation) return;
+    
+    conversation.messages.push({ text, role, metadata });
+    saveConversations();
+}
 
 // Welcome messages pool
 const WELCOME_MESSAGES = [
@@ -97,6 +257,7 @@ function getRandomWelcomeMessage() {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadRandomWelcomeMessage();
+    loadConversations();
     setupEventListeners();
     checkAPIHealth();
     autoResizeTextarea();
@@ -110,6 +271,17 @@ function loadRandomWelcomeMessage() {
 }
 
 function setupEventListeners() {
+    // Sidebar toggle
+    leftSidebar.querySelector('.sidebar-header').addEventListener('click', () => {
+        leftSidebar.classList.toggle('expanded');
+    });
+    
+    // New conversation button
+    newConversationBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        createNewConversation();
+    });
+    
     // Send message
     sendBtn.addEventListener('click', handleSendMessage);
     userInput.addEventListener('keydown', (e) => {
@@ -161,9 +333,9 @@ function setupEventListeners() {
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('dragging');
-        const files = e.dataTransfer.files;
+        const files = Array.from(e.dataTransfer.files);
         if (files.length > 0) {
-            handleFileUpload(files[0]);
+            handleMultipleFileUploads(files);
         }
     });
 }
@@ -234,7 +406,7 @@ async function handleSendMessage() {
     }
 }
 
-function addMessage(text, sender, metadata = {}) {
+function addMessage(text, sender, metadata = {}, shouldSave = true) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}-message`;
     
@@ -298,6 +470,16 @@ function addMessage(text, sender, metadata = {}) {
     
     chatMessages.appendChild(messageDiv);
     scrollToBottom();
+    
+    // Save message to conversation if shouldSave is true
+    if (shouldSave && sender !== 'system') {
+        saveMessageToConversation(text, sender, metadata);
+        
+        // Update conversation title if it's a user message
+        if (sender === 'user') {
+            updateConversationTitle(text);
+        }
+    }
 }
 
 function formatMessage(text) {
@@ -508,19 +690,12 @@ async function handleMultipleFileUploads(files) {
         progressFill.style.width = '100%';
         uploadStatus.textContent = 'Upload complete!';
         
-        // Show success message in chat
+        // Show success toast notification
         if (successCount > 0) {
-            addMessage(
-                `✅ **Documents Uploaded Successfully**\n\n` +
-                `📄 **Files Uploaded:** ${successCount}\n` +
-                `📊 **Total Chunks Created:** ${totalChunks}\n` +
-                (errorCount > 0 ? `⚠️ **Failed:** ${errorCount}\n` : '') +
-                `\nYour documents have been processed and added to the knowledge base. You can now ask questions about them!`,
-                'assistant',
-                { mode: 'system' }
-            );
-            
-            showToast(`Successfully uploaded ${successCount} file(s)`, 'success');
+            const message = successCount === 1 
+                ? `Successfully uploaded 1 file (${totalChunks} chunks created)` 
+                : `Successfully uploaded ${successCount} files (${totalChunks} chunks created)`;
+            showToast(message, 'success');
         }
         
         if (errorCount > 0) {

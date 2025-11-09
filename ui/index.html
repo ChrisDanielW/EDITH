@@ -12,11 +12,27 @@
 <body>
     <div class="container">
         <!-- Left Sidebar -->
-        <aside class="sidebar sidebar-left">
+        <aside class="sidebar sidebar-left" id="leftSidebar">
             <div class="sidebar-header">
                 <div class="logo-icon">👓</div>
-                <div class="logo-text">EDITH</div>
+                <div class="logo-text" data-full-text="Even Disconnected, I'm The Helper"></div>
             </div>
+            
+            <!-- Expanded Sidebar Content -->
+            <div class="sidebar-expanded-content">
+                <div class="conversations-section">
+                    <div class="conversations-header">
+                        <h4>Conversations</h4>
+                        <button id="newConversationBtn" class="new-conversation-btn" title="New Conversation">
+                            ➕
+                        </button>
+                    </div>
+                    <div id="conversationsList" class="conversations-list">
+                        <!-- Conversations will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
             <div class="sidebar-actions">
                 <button id="statsBtn" class="sidebar-btn" title="View Stats">
                     📈
