@@ -69,10 +69,8 @@ pip install -r requirements.txt
 ### 3. Configure Pinecone
 
 ```powershell
-# Copy environment file
-cp .env.example .env
-
-# Edit .env and add your Pinecone API key
+# Create a .env and copy the contents of "env-example.txt" provided in the root directory to it
+# Then edit the .env and add your Pinecone API key
 notepad .env
 ```
 

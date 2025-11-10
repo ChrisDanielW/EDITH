@@ -1,0 +1,39 @@
+# ========== Pinecone Vector Database ==========
+PINECONE_API_KEY=<your-key-goes-here>
+PINECONE_ENVIRONMENT=gcp-starter
+PINECONE_INDEX_NAME=edith-notes
+VECTOR_DIMENSION=384
+
+# ========== LLaMA Model Settings ==========
+# Path to your local LLaMA model file (.gguf format recommended)
+# Using LLaMA 3.1 8B Instruct Q4_K_M quantization
+LLAMA_MODEL_PATH=llama3.1:8b-instruct-q4_K_M
+LLAMA_MODEL_TYPE=gguf
+USE_GPU=true
+MAX_TOKENS=4096
+TEMPERATURE=0.7
+
+# ========== Embedding Model ==========
+# Default uses a small, efficient sentence transformer
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_DEVICE=cuda  # or 'cpu' if no GPU
+
+# ========== Document Processing ==========
+NOTES_DIRECTORY=./src/data/notes
+USE_OCR=true
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+
+# ========== RAG Settings ==========
+TOP_K_RESULTS=5
+SIMILARITY_THRESHOLD=0.3
+
+# ========== Summary Settings ==========
+SUMMARY_MAX_LENGTH=500
+SUMMARY_MIN_LENGTH=100
+SUMMARY_STYLE=comprehensive  # comprehensive, bullet, or brief
+
+# ========== Application Settings ==========
+LOG_LEVEL=INFO
+BATCH_SIZE=10
+MAX_NOTES_TO_PROCESS=100
