@@ -264,7 +264,9 @@ Contributions are welcome! Areas for improvement:
 
 See EDITH in action - uploading documents, managing conversations, and answering questions:
 
-https://github.com/user-attachments/assets/EDITH-demo.mp4
+[📺 Watch Demo Video](media/EDITH-demo.mp4)
+
+*Click the link above to download and watch the demo*
 
 ---
 
