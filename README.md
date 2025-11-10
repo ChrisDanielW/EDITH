@@ -6,7 +6,7 @@
 
 *Smart conversation management • Context-aware responses • Minimalist web UI*
 
-![EDITH Landing Page](images/Screenshot%202025-11-09%20222627.png)
+![EDITH Landing Page](media/Screenshot%202025-11-09%20222627.png)
 
 </div>
 
@@ -16,7 +16,7 @@
 
 EDITH is your personal AI study assistant that helps you make sense of your notes using local LLMs. She features a modern interface with conversation management, intelligent query classification, and context-aware responses. Best of all? She runs **completely offline** using LLaMA 3.1.
 
-![EDITH Chat Interface](images/Screenshot%202025-11-09%20223010.png)
+![EDITH Chat Interface](media/Screenshot%202025-11-09%20223010.png)
 
 ### Key Features
 
@@ -98,7 +98,7 @@ Open your browser to **http://localhost:5000** and start chatting!
    - Select or drag-and-drop your documents (PDF, DOCX, TXT, images)
    - EDITH will process and index them automatically
 
-![Upload Interface](images/Screenshot%202025-11-09%20223330.png)
+![Upload Interface](media/Screenshot%202025-11-09%20223330.png)
 
 2. **Start a Conversation**
    - Type your first message on the landing page
@@ -125,7 +125,7 @@ You: Can you explain that in more detail?
 EDITH: [References previous conversation context]
 ```
 
-![Conversation with Context](images/Screenshot%202025-11-09%20223314.png)
+![Conversation with Context](media/Screenshot%202025-11-09%20223314.png)
 
 ### Managing Conversations
 
@@ -136,7 +136,7 @@ EDITH: [References previous conversation context]
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Tech Stack
 
@@ -164,7 +164,7 @@ EDITH: [References previous conversation context]
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 EDITH/
@@ -197,7 +197,7 @@ EDITH/
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Token Limits (Adjustable in `src/main.py`)
 
@@ -226,7 +226,7 @@ EDITH uses Pinecone with these settings:
 
 ---
 
-## 🎨 Features Deep Dive
+## Features 
 
 ### Conversation Management
 - Persistent storage in browser localStorage
@@ -247,7 +247,7 @@ EDITH uses Pinecone with these settings:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Areas for improvement:
 
@@ -260,13 +260,21 @@ Contributions are welcome! Areas for improvement:
 
 ---
 
-## 📄 License
+## 🎥 Demo Video
+
+See EDITH in action - uploading documents, managing conversations, and answering questions:
+
+https://github.com/user-attachments/assets/EDITH-demo.mp4
+
+---
+
+## License
 
 MIT License - See [LICENSE](LICENSE) for details
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **LLaMA 3.1** by Meta AI
 - **Ollama** for easy local LLM deployment
@@ -277,8 +285,6 @@ MIT License - See [LICENSE](LICENSE) for details
 
 <div align="center">
 
-Made with ❤️ for students who want to study smarter
-
-**[Report Bug](https://github.com/ChrisDanielW/EDITH/issues)** • **[Request Feature](https://github.com/ChrisDanielW/EDITH/issues)**
+Made for students who want to study smarter (and also in the hopes of possibly getting an internship)
 
 </div>
