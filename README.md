@@ -12,7 +12,7 @@
 
 ---
 
-## 🌟 What is EDITH?
+## What's EDITH?
 
 EDITH is your personal AI study assistant that helps you make sense of your notes using local LLMs. She features a modern interface with conversation management, intelligent query classification, and context-aware responses. Best of all? She runs **completely offline** using LLaMA 3.1.
 
@@ -20,32 +20,32 @@ EDITH is your personal AI study assistant that helps you make sense of your note
 
 ### Key Features
 
-✨ **Modern Web Interface**
+ **Modern Web Interface**
 - Modern landing page with welcoming design
 - Conversation management (create, save, switch, delete)
 - Clean, animated UI with expandable sidebar
 - Real-time typing indicators and status updates
 
-🧠 **Intelligent AI Assistant**
+ **Intelligent AI Assistant**
 - Context-aware responses that reference previous messages
 - Automatic classification between knowledge queries and casual chat
 - RAG (Retrieval-Augmented Generation) for note-based answers
 - Conversational mode for general questions
 
-📚 **Powerful Note Processing**
+ **Powerful Note Processing**
 - Multi-format support (PDF, DOCX, images with OCR, text files)
 - Drag-and-drop or multi-file upload
 - Automatic text chunking and embedding generation
 - Vector database storage with Pinecone for fast retrieval
 
-🔒 **Privacy First**
+ **Privacy First**
 - 100% local LLM execution via Ollama
 - No data sent to external servers
 - Your notes stay on your machine
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install Ollama & Pull Model
 
@@ -87,7 +87,7 @@ Open your browser to **http://localhost:5000** and start chatting!
 
 ---
 
-## 📖 User Guide
+## User Guide
 
 ### First Time Setup
 
@@ -258,7 +258,7 @@ Contributions are welcome! Areas for improvement:
 
 ---
 
-## 🎥 Demo Video
+##  Demo Video
 
 See EDITH in action - uploading documents, managing conversations, and answering questions:
 
